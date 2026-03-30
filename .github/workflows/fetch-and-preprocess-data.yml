@@ -39,15 +39,15 @@ jobs:
 
       - name: Fetch weather history
         run: |
-          uv run python src/data/fetch/fetch_weather_past_data.py
+          uv run python -m src.data.fetch.fetch_weather_past_data.py
 
       - name: Fetch weather forecast
         run: |
-          uv run python src/data/fetch/fetch_weather_forecast_data.py
+          uv run python -m src.data.fetch.fetch_weather_forecast_data.py
 
       - name: Preprocess and merge data
         run: |
-          uv run python src/data/preprocess/merge_datasets.py
+          uv run python -m src.data.preprocess.merge_datasets.py
 
       - name: Commit data changes
         run: |
