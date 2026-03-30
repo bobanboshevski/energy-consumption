@@ -23,7 +23,7 @@ jobs:
 
       # ✅ INSTALL DVC
       - name: Setup DVC
-        uses: iterative/setup-dvc@c1
+        uses: iterative/setup-dvc@v1
 
       - name: Setup Python
         uses: actions/setup-python@v4
