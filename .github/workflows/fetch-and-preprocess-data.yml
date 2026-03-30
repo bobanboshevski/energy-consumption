@@ -21,8 +21,9 @@ jobs:
         run: |
           pipx install uv
 
-      #      - name: Setup DVC
-      ##        uses: iterative/setup-dvc@c1
+      # ✅ INSTALL DVC
+      - name: Setup DVC
+        uses: iterative/setup-dvc@c1
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -32,6 +33,17 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --frozen
+
+      # ✅ AUTHENTICATE TO AWS S3
+      - name: Configure AWS credentials for DVC
+        run: |
+          dvc remote modify origin --local access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          dvc remote modify origin --local secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # ✅ PULL EXISTING VERSIONED DATA
+      - name: DVC pull data
+        run: |
+          dvc pull
 
       - name: Fetch energy demand
         run: |
@@ -49,12 +61,19 @@ jobs:
         run: |
           uv run python -m src.data.preprocess.merge_datasets
 
-      - name: Commit data changes
+      # ✅ VERSION DATA WITH DVC
+      - name: Track and push data with DVC
         run: |
-          git add data
+          dvc add data
+          dvc push
+
+      # ✅ COMMIT METADATA TO GIT
+      - name: Commit DVC metadata
+        run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git commit -m "Updated energy & weather data on $(date +'%Y-%m-%d') via GitHub Actions" || echo "No changes to commit"
+          git add data.dvc
+          git commit -m "Updated energy & weather data on $(date +'%Y-%m-%d')" || echo "No changes to commit"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
