@@ -35,7 +35,7 @@ jobs:
 
       - name: Fetch energy demand
         run: |
-          uv run python src/data/fetch/fetch_energy_demand_data
+          uv run python -m src/data/fetch/fetch_energy_demand_data
 
       - name: Fetch weather history
         run: |
