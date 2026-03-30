@@ -35,19 +35,19 @@ jobs:
 
       - name: Fetch energy demand
         run: |
-          uv run python src/data/fetch/fetch_energy_demand_data.py
+          uv run python src/data/fetch/fetch_energy_demand_data
 
       - name: Fetch weather history
         run: |
-          uv run python -m src.data.fetch.fetch_weather_past_data.py
+          uv run python -m src.data.fetch.fetch_weather_past_data
 
       - name: Fetch weather forecast
         run: |
-          uv run python -m src.data.fetch.fetch_weather_forecast_data.py
+          uv run python -m src.data.fetch.fetch_weather_forecast_data
 
       - name: Preprocess and merge data
         run: |
-          uv run python -m src.data.preprocess.merge_datasets.py
+          uv run python -m src.data.preprocess.merge_datasets
 
       - name: Commit data changes
         run: |
