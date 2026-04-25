@@ -1,0 +1,70 @@
+stages:
+  fetch_energy_demand:
+    cmd: |
+      uv run python -m src.data.fetch.fetch_energy_demand_data
+      git commit -am "Updated energy demand data on `date` with DVC pipeline and GitHub workflows" || true
+      git push || true
+      uv run dvc push || true
+    deps:
+      - src/data/fetch/fetch_energy_demand_data.py
+    params:
+      - fetch.energy_demand.url
+      - fetch.energy_demand.file_path
+    outs:
+      - data/raw/energy_demand/energy_demand.json:
+          persist: true
+    always_changed: true
+
+  fetch_weather_history:
+    cmd: |
+      uv run python -m src.data.fetch.fetch_weather_past_data
+      git commit -am "Updated weather history data on `date` with DVC pipeline and GitHub workflows" || true
+      git push || true
+      uv run dvc push || true
+    deps:
+      - src/data/fetch/fetch_weather_past_data.py
+    params:
+      - fetch.weather_history.url
+      - fetch.weather_history.lat
+      - fetch.weather_history.lon
+    outs:
+      - data/raw/weather/history/weather_history.json:
+          persist: true
+    always_changed: true
+
+  fetch_weather_forecast:
+    cmd: |
+      uv run python -m src.data.fetch.fetch_weather_forecast_data
+      git commit -am "Updated weather forecast data on `date` with DVC pipeline and GitHub workflows" || true
+      git push || true
+      uv run dvc push || true
+    deps:
+      - src/data/fetch/fetch_weather_forecast_data.py
+    params:
+      - fetch.weather_forecast.url
+      - fetch.weather_forecast.lat
+      - fetch.weather_forecast.lon
+      - fetch.weather_forecast.forecast_days
+    outs:
+      - data/raw/weather/forecast/weather_forecast.json:
+          persist: true
+    always_changed: true
+
+  preprocess:
+    cmd: |
+      uv run python -m src.data.preprocess.merge_datasets
+      git commit -am "Updated preprocessed data on `date` with DVC pipeline and GitHub workflow" || true
+      git push || true
+      uv run dvc push || true
+    deps:
+      - src/data/preprocess/merge_datasets.py
+      - data/raw/energy_demand/energy_demand.json
+      - data/raw/weather/history/weather_history.json
+      - data/raw/weather/forecast/weather_forecast.json
+    params:
+      - preprocess.output_path
+    outs:
+      - data/preprocessed/final_dataset.csv:
+          persist: true
+
+

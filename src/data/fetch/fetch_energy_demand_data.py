@@ -2,9 +2,13 @@ import os
 import json
 from datetime import datetime
 import requests
+import yaml
 
-FILE_PATH = "data/raw/energy_demand/energy_demand.json"
-BASE_URL = "https://api.iea.org/rte/demand/SVN/timeseries"
+params = yaml.safe_load(open("params.yaml"))["fetch"]["energy_demand"]
+
+FILE_PATH = params["file_path"]
+BASE_URL = params["url"]
+INITIAL_DATE = params["initial_date"]
 
 
 # ─────────────────────────────────────────────
@@ -35,7 +39,7 @@ def get_from_date(existing_data: list) -> str:
         last_date = datetime.fromisoformat(last_date_str.replace("Z", ""))
         return last_date.strftime("%Y-%m-%d")
     else:
-        return "2020-01-01"  # initial history
+        return INITIAL_DATE
 
 
 def fetch_data(from_date: str, to_date: str) -> list:

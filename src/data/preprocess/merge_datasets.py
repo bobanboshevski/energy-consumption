@@ -1,12 +1,14 @@
 import json
 import os
 import pandas as pd
+import yaml
 
-ENERGY_PATH = "data/raw/energy_demand/energy_demand.json"
-WEATHER_HISTORY_PATH = "data/raw/weather/history/weather_history.json"
-WEATHER_FORECAST_PATH = "data/raw/weather/forecast/weather_forecast.json"
+params = yaml.safe_load(open("params.yaml"))["preprocess"]
 
-OUTPUT_PATH = "data/preprocessed/final_dataset.csv"
+ENERGY_PATH = params["energy_path"]
+WEATHER_HISTORY_PATH = params["weather_history_path"]
+WEATHER_FORECAST_PATH = params["weather_forecast_path"]
+OUTPUT_PATH = params["output_path"]
 
 
 def ensure_directory(path: str):

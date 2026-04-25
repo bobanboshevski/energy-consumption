@@ -1,0 +1,25 @@
+fetch:
+  energy_demand:
+    url: "https://api.iea.org/rte/demand/SVN/timeseries"
+    file_path: "data/raw/energy_demand/energy_demand.json"
+    initial_date: "2020-01-01"
+
+  weather_history:
+    url: "https://archive-api.open-meteo.com/v1/archive"
+    file_path: "data/raw/weather/history/weather_history.json"
+    initial_date: "2020-01-01"
+    lat: 46.05
+    lon: 14.50
+
+  weather_forecast:
+    url: "https://api.open-meteo.com/v1/forecast"
+    file_path: "data/raw/weather/forecast/weather_forecast.json"
+    lat: 46.05
+    lon: 14.50
+    forecast_days: 16
+
+preprocess:
+  energy_path: "data/raw/energy_demand/energy_demand.json"
+  weather_history_path: "data/raw/weather/history/weather_history.json"
+  weather_forecast_path: "data/raw/weather/forecast/weather_forecast.json"
+  output_path: "data/preprocessed/final_dataset.csv"

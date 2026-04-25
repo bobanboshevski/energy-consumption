@@ -3,12 +3,15 @@ from src.data.utils.weather_utils import (
     save_data,
     fetch_json
 )
+import yaml
 
-FILE_PATH = "data/raw/weather/forecast/weather_forecast.json"
-BASE_URL = "https://api.open-meteo.com/v1/forecast"
+params = yaml.safe_load(open("params.yaml"))["fetch"]["weather_forecast"]
 
-LAT = 46.05
-LON = 14.50
+FILE_PATH = params["file_path"]
+BASE_URL = params["url"]
+LAT = params["lat"]
+LON = params["lon"]
+FORECAST_DAYS = params["forecast_days"]
 
 
 def build_url():
@@ -17,7 +20,7 @@ def build_url():
         f"?latitude={LAT}&longitude={LON}"
         f"&daily=temperature_2m_max,temperature_2m_min,daylight_duration"
         f"&timezone=auto"
-        f"&forecast_days=16"
+        f"&forecast_days={FORECAST_DAYS}"
     )
 
 
