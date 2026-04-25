@@ -30,50 +30,29 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Setup Git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+
       - name: Install dependencies
         run: |
           uv sync --frozen
 
-      # ✅ AUTHENTICATE TO AWS S3
-      - name: Configure AWS credentials for DVC
+      - name: DVC setup remote
+        # ✅ AUTHENTICATE TO AWS S3
         run: |
-          dvc remote modify origin --local access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          dvc remote modify origin --local secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          uv run dvc remote modify origin --local access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          uv run dvc remote modify origin --local secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # ✅ PULL EXISTING VERSIONED DATA
-      - name: DVC pull data
+      - name: Run DVC pipeline
         run: |
-          dvc pull
-
-      - name: Fetch energy demand
-        run: |
-          uv run python -m src.data.fetch.fetch_energy_demand_data
-
-      - name: Fetch weather history
-        run: |
-          uv run python -m src.data.fetch.fetch_weather_past_data
-
-      - name: Fetch weather forecast
-        run: |
-          uv run python -m src.data.fetch.fetch_weather_forecast_data
-
-      - name: Preprocess and merge data
-        run: |
-          uv run python -m src.data.preprocess.merge_datasets
-
-      # ✅ VERSION DATA WITH DVC
-      - name: Track and push data with DVC
-        run: |
-          dvc add data
-          dvc push
-
-      # ✅ COMMIT METADATA TO GIT
-      - name: Commit DVC metadata
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add data.dvc
-          git commit -m "Updated energy & weather data on $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          uv run dvc pull
+          uv run dvc status
+          uv run dvc repro
+          uv run dvc push
+          git add dvc.lock
+          git commit -m "Updated dvc.lock on `date` with GitHub Actions" || true
 
       - name: Push changes
         uses: ad-m/github-push-action@master
