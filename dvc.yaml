@@ -73,7 +73,17 @@ stages:
     deps:
       - data/preprocessed/final_dataset.csv
     always_changed: true
-#    outs:
-#      - gx:
-#          persist: true
+  #    outs:
+  #      - gx:
+  #          persist: true
+
+  test_data:
+    cmd: |
+      uv run python src/data/test_data.py
+    deps:
+      - data/preprocessed/final_dataset.csv
+      - src/data/test_data.py
+    outs:
+      - data/reference:
+          persist: true
 
