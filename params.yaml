@@ -27,7 +27,7 @@ preprocess:
 train:
   test_size: 90
   random_state: 42
-  window_size: 30
+  window_size: 30 # todo: we can experiment with different window sizes
   target_col: "energy_demand"
   feature_cols:
     - "temp_max"

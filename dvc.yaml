@@ -87,6 +87,8 @@ stages:
       - data/reference:
           persist: true
 
+  # todo: i think it doesnt makes sense to train the model every time we run the pipeline.
+  # probably we need to train the model when the data changes - the tests ???
   train:
     cmd: |
       uv run python src/models/train.py
