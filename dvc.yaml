@@ -87,3 +87,26 @@ stages:
       - data/reference:
           persist: true
 
+  train:
+    cmd: |
+      uv run python src/models/train.py
+      git commit -am "Updated model on `date` with DVC pipeline" || true
+      git push || true
+      uv run dvc push || true
+    deps:
+      - src/models/preprocess.py
+      - src/models/train.py
+      - data/preprocessed/final_dataset.csv
+      - gx/uncommitted # output of 'validate'
+      - data/reference # output of 'test_data'
+    params:
+      - train.test_size
+      - train.random_state
+      - train.window_size
+      - train.target_col
+      - train.feature_cols
+    outs:
+      - models/:
+          persist: true
+
+

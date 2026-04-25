@@ -23,3 +23,13 @@ preprocess:
   weather_history_path: "data/raw/weather/history/weather_history.json"
   weather_forecast_path: "data/raw/weather/forecast/weather_forecast.json"
   output_path: "data/preprocessed/final_dataset.csv"
+
+train:
+  test_size: 90
+  random_state: 42
+  window_size: 30
+  target_col: "energy_demand"
+  feature_cols:
+    - "temp_max"
+    - "temp_min"
+    - "daylight_duration"

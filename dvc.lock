@@ -110,3 +110,45 @@ stages:
       md5: 33045793662c387ef0f2a1815fe36aeb.dir
       size: 117726
       nfiles: 1
+  train:
+    cmd: "uv run python src/models/train.py\ngit commit -am \"Updated model on `date`
+      with DVC pipeline\" || true\ngit push || true\nuv run dvc push || true\n"
+    deps:
+    - path: data/preprocessed/final_dataset.csv
+      hash: md5
+      md5: 0767afe6d6e86a0e83aeb8d0da893588
+      size: 117984
+    - path: data/reference
+      hash: md5
+      md5: 33045793662c387ef0f2a1815fe36aeb.dir
+      size: 117726
+      nfiles: 1
+    - path: gx/uncommitted
+      hash: md5
+      md5: c01a4ab0f7e318bfbcf9ce32a8ecc1a7.dir
+      size: 4665029
+      nfiles: 36
+    - path: src/models/preprocess.py
+      hash: md5
+      md5: 85d85eccc9061ffc55a72c9ae941415f
+      size: 1343
+    - path: src/models/train.py
+      hash: md5
+      md5: 286169334be3f400088628f511e4b48c
+      size: 7677
+    params:
+      params.yaml:
+        train.feature_cols:
+        - temp_max
+        - temp_min
+        - daylight_duration
+        train.random_state: 42
+        train.target_col: energy_demand
+        train.test_size: 90
+        train.window_size: 30
+    outs:
+    - path: models/
+      hash: md5
+      md5: 5f2b3b0549a08e3607ca0efd75fb26e4.dir
+      size: 415071
+      nfiles: 2
