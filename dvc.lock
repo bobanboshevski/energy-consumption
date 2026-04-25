@@ -1,0 +1,88 @@
+schema: '2.0'
+stages:
+  fetch_energy_demand:
+    cmd: "uv run python -m src.data.fetch.fetch_energy_demand_data\ngit commit -am
+      \"Updated energy demand data on `date` with DVC pipeline and GitHub workflows\"\
+      \ || true\ngit push || true\nuv run dvc push || true\n"
+    deps:
+    - path: src/data/fetch/fetch_energy_demand_data.py
+      hash: md5
+      md5: c54e7fde779525d5ca3c771e853d7144
+      size: 3118
+    params:
+      params.yaml:
+        fetch.energy_demand.file_path: data/raw/energy_demand/energy_demand.json
+        fetch.energy_demand.url: https://api.iea.org/rte/demand/SVN/timeseries
+    outs:
+    - path: data/raw/energy_demand/energy_demand.json
+      hash: md5
+      md5: 0359cf98f942c0d4ee3103b8a2eef962
+      size: 259798
+  fetch_weather_history:
+    cmd: "uv run python -m src.data.fetch.fetch_weather_past_data\ngit commit -am
+      \"Updated weather history data on `date` with DVC pipeline and GitHub workflows\"\
+      \ || true\ngit push || true\nuv run dvc push || true\n"
+    deps:
+    - path: src/data/fetch/fetch_weather_past_data.py
+      hash: md5
+      md5: f11472cc030965e0a383d11bfb96f9f0
+      size: 1960
+    params:
+      params.yaml:
+        fetch.weather_history.lat: 46.05
+        fetch.weather_history.lon: 14.5
+        fetch.weather_history.url: https://archive-api.open-meteo.com/v1/archive
+    outs:
+    - path: data/raw/weather/history/weather_history.json
+      hash: md5
+      md5: 7bfdcd9784cd63465a525f3e6744cbea
+      size: 192583
+  fetch_weather_forecast:
+    cmd: "uv run python -m src.data.fetch.fetch_weather_forecast_data\ngit commit
+      -am \"Updated weather forecast data on `date` with DVC pipeline and GitHub workflows\"\
+      \ || true\ngit push || true\nuv run dvc push || true\n"
+    deps:
+    - path: src/data/fetch/fetch_weather_forecast_data.py
+      hash: md5
+      md5: ca9f304a3c4b4940ef35056fc56045c3
+      size: 960
+    params:
+      params.yaml:
+        fetch.weather_forecast.forecast_days: 16
+        fetch.weather_forecast.lat: 46.05
+        fetch.weather_forecast.lon: 14.5
+        fetch.weather_forecast.url: https://api.open-meteo.com/v1/forecast
+    outs:
+    - path: data/raw/weather/forecast/weather_forecast.json
+      hash: md5
+      md5: ff39796e6ae89aee817a32da908ad445
+      size: 1898
+  preprocess:
+    cmd: "uv run python -m src.data.preprocess.merge_datasets\ngit commit -am \"Updated
+      preprocessed data on `date` with DVC pipeline and GitHub workflow\" || true\n\
+      git push || true\nuv run dvc push || true\n"
+    deps:
+    - path: data/raw/energy_demand/energy_demand.json
+      hash: md5
+      md5: 0359cf98f942c0d4ee3103b8a2eef962
+      size: 259798
+    - path: data/raw/weather/forecast/weather_forecast.json
+      hash: md5
+      md5: ff39796e6ae89aee817a32da908ad445
+      size: 1898
+    - path: data/raw/weather/history/weather_history.json
+      hash: md5
+      md5: 7bfdcd9784cd63465a525f3e6744cbea
+      size: 192583
+    - path: src/data/preprocess/merge_datasets.py
+      hash: md5
+      md5: 2d3316a84102c7536bd921739d55f09a
+      size: 3131
+    params:
+      params.yaml:
+        preprocess.output_path: data/preprocessed/final_dataset.csv
+    outs:
+    - path: data/preprocessed/final_dataset.csv
+      hash: md5
+      md5: aff9c9766803e9b319e57c5f46b0ce46
+      size: 117983
