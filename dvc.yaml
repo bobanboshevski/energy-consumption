@@ -67,4 +67,13 @@ stages:
       - data/preprocessed/final_dataset.csv:
           persist: true
 
+  validate:
+    cmd: |
+      cd gx && uv run python run_checkpoint.py
+    deps:
+      - data/preprocessed/final_dataset.csv
+    always_changed: true
+#    outs:
+#      - gx:
+#          persist: true
 
