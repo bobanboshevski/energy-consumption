@@ -68,7 +68,7 @@ stages:
       size: 259798
     - path: data/raw/weather/forecast/weather_forecast.json
       hash: md5
-      md5: 34031486c755ed61634c96511ac6ce1f
+      md5: e7e2ba9060098cbcfa90bf7986b375f0
       size: 1899
     - path: data/raw/weather/history/weather_history.json
       hash: md5
