@@ -59,7 +59,7 @@ stages:
       size: 1898
   preprocess:
     cmd: "uv run python -m src.data.preprocess.merge_datasets\ngit commit -am \"Updated
-      preprocessed data on `date` with DVC pipeline and GitHub workflow\" || true\n\
+      preprocessed data on `date` with DVC pipeline and GitHub workflow\" || true\n
       git push || true\nuv run dvc push || true\n"
     deps:
     - path: data/raw/energy_demand/energy_demand.json
