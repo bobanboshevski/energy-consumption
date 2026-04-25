@@ -82,7 +82,7 @@ stages:
       uv run python src/data/test/test_data.py
     deps:
       - data/preprocessed/final_dataset.csv
-      - src/data/test_data.py
+      - src/data/test/test_data.py
     outs:
       - data/reference:
           persist: true
