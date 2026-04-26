@@ -68,8 +68,8 @@ stages:
       size: 259914
     - path: data/raw/weather/forecast/weather_forecast.json
       hash: md5
-      md5: 6bb672fc12a76891e56124576cf270c1
-      size: 1898
+      md5: 089b6bb889e161e154b75eee4f9b34f3
+      size: 1899
     - path: data/raw/weather/history/weather_history.json
       hash: md5
       md5: 10598da163c2265f495790c384b8f5e5
@@ -84,21 +84,21 @@ stages:
     outs:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: adf2ce9833f6d725aa67e58eeb253b45
+      md5: 896b4d1121a6d86e24bfdac2c8b163cd
       size: 118039
   validate:
     cmd: "cd gx && uv run python run_checkpoint.py\n"
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: adf2ce9833f6d725aa67e58eeb253b45
+      md5: 896b4d1121a6d86e24bfdac2c8b163cd
       size: 118039
   test_data:
     cmd: "uv run python src/data/test/test_data.py\n"
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: adf2ce9833f6d725aa67e58eeb253b45
+      md5: 896b4d1121a6d86e24bfdac2c8b163cd
       size: 118039
     - path: src/data/test/test_data.py
       hash: md5
@@ -107,7 +107,7 @@ stages:
     outs:
     - path: data/reference
       hash: md5
-      md5: 9a57379531ef4b8e2f161501c471289c.dir
+      md5: d381e512502493be97fb441f1f7b2e46.dir
       size: 117781
       nfiles: 1
   train:
