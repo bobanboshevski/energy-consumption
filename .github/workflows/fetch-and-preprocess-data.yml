@@ -9,6 +9,9 @@ jobs:
   fetch_and_preprocess:
     name: Fetch and preprocess all data
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: machine-learning
 
     steps:
       - name: Checkout repository
@@ -18,6 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install uv
+        working-directory: .
         run: |
           pipx install uv
 
@@ -31,6 +35,7 @@ jobs:
           python-version: '3.12'
 
       - name: Setup Git
+        working-directory: .
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"

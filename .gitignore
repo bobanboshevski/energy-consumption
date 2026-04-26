@@ -9,6 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-/data
-/models
+/machine-learning/data
+/machine-learning/models
 .env
