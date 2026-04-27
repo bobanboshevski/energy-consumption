@@ -78,6 +78,15 @@ def merge_all():
     # SORTING BY DATE
     final_df = final_df.sort_values(by="Date")
 
+    # Fix: rows where energy_demand is null but is_forecast is False
+    # This happens when the data source is delayed (e.g. April 27 data not yet published)
+    # These rows should be treated as forecast rows until the real value arrives
+    # this is very specific fix - so is_forecast as column can become little confusing
+    mask = final_df["energy_demand"].isna() & (final_df["is_forecast"] == False)
+    final_df.loc[mask, "is_forecast"] = True
+
+    final_df.to_csv(OUTPUT_PATH, index=False)
+
     final_df.to_csv(OUTPUT_PATH, index=False)
 
     print(f"final dataset saved to {OUTPUT_PATH}")
