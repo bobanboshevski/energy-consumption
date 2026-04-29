@@ -2,7 +2,8 @@ import sys
 import great_expectations as gx
 from pathlib import Path
 
-context = gx.get_context(context_root_dir=str(Path(__file__).parent))
+# context = gx.get_context(context_root_dir=str(Path(__file__).parent))
+context = gx.get_context()
 
 datasource_name = "energy_demand"
 data_asset_name = "energy_demand_data"
