@@ -155,3 +155,45 @@ stages:
       hash: md5
       md5: 3294226642f8790499e3233145e432c9
       size: 3435
+  train_univariate:
+    cmd: "uv run python src/models/train_univariate.py\ngit commit -am \"Updated model
+      on `date` with DVC pipeline\" || true\ngit push || true\nuv run dvc push ||
+      true\n"
+    deps:
+    - path: data/preprocessed/final_dataset.csv
+      hash: md5
+      md5: b64c5bb5c2e48c2935b8815be907fd04
+      size: 118236
+    - path: data/reference
+      hash: md5
+      md5: 7f9ab14098fa7f8077aca602f46d0453.dir
+      size: 117967
+      nfiles: 1
+    - path: gx/uncommitted
+      hash: md5
+      md5: b5f6882a65ca824aa0650b7003168294.dir
+      size: 4971596
+      nfiles: 44
+    - path: src/models/preprocess.py
+      hash: md5
+      md5: 5f4aa161479b881298bb07f1cd9c7d38
+      size: 1603
+    - path: src/models/train_univariate.py
+      hash: md5
+      md5: df7fe5e78e046106fe1fb1d2f2c178af
+      size: 9029
+    params:
+      params.yaml:
+        train_univariate.random_state: 42
+        train_univariate.target_col: energy_demand
+        train_univariate.test_size: 90
+        train_univariate.window_size: 60
+    outs:
+    - path: models/model_energy_demand_univariate.keras
+      hash: md5
+      md5: 51e258e17d617be68db0dadd439765da
+      size: 807104
+    - path: models/pipeline_univariate.pkl
+      hash: md5
+      md5: cccf2f49708be12c8ce6be9dafc9f1a7
+      size: 1385
