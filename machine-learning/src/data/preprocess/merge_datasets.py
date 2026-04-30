@@ -85,6 +85,12 @@ def merge_all():
     mask = final_df["energy_demand"].isna() & (final_df["is_forecast"] == False)
     final_df.loc[mask, "is_forecast"] = True
 
+    # Fill missing temp_max/temp_min using forward fill
+    # This handles the last forecast day where weather API has no temperature data yet
+    # but does have daylight_duration
+    final_df["temp_max"] = final_df["temp_max"].ffill()
+    final_df["temp_min"] = final_df["temp_min"].ffill()
+
     final_df.to_csv(OUTPUT_PATH, index=False)
 
     final_df.to_csv(OUTPUT_PATH, index=False)
