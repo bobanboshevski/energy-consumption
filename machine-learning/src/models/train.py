@@ -17,7 +17,9 @@ from pathlib import Path
 import sys
 
 # todo: this needs to be checked if it works properly in both /backend and /machine-learning
-from shared.preprocess import DatePreprocessor, SlidingWindowTransformer
+# from shared.preprocess import DatePreprocessor, SlidingWindowTransformer
+from preprocess import DatePreprocessor, SlidingWindowTransformer
+
 # sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "shared"))
 # from preprocess import DatePreprocessor, SlidingWindowTransformer
 
@@ -247,7 +249,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
     try:
         mlflow.tensorflow.log_model(
             model,
-            #name="model_energy_demand",
+            # name="model_energy_demand",
             artifact_path="model_energy_demand",
             registered_model_name="energy_demand_model"
         )
