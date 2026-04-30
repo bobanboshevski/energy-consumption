@@ -33,3 +33,10 @@ train:
     - "temp_max"
     - "temp_min"
     - "daylight_duration"
+
+train_univariate:
+  test_size: 90
+  window_size: 60 # larger window size - we must compensate because it's one column
+  target_col: "energy_demand"
+  random_state: 42
+  forecast_horizon: 365 # I allow prediction up to 365 days ahead

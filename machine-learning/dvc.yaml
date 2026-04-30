@@ -111,4 +111,29 @@ stages:
       - models/:
           persist: true
 
+  train_univariate:
+    cmd: |
+      uv run python src/models/train_univariate.py
+      git commit -am "Updated model on `date` with DVC pipeline" || true
+      git push || true
+      uv run dvc push || true
+    deps:
+      - src/models/preprocess.py
+      - src/models/train_univariate.py
+      - data/preprocessed/final_dataset.csv
+      - data/reference
+      - gx/uncommitted
+    params:
+      - train_univariate.test_size
+      - train_univariate.random_state
+      - train_univariate.window_size
+      - train_univariate.target_col
+    #    outs:
+    #      - models/model_energy_demand_univariate.keras:
+    #          persist: true
+    #      - models/pipeline_univariate.pkl:
+    #          persist: true
+    outs:
+      - models/:
+          persist: true
 

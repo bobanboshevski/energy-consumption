@@ -12,3 +12,5 @@ wheels/
 /machine-learning/data
 /machine-learning/models
 .env
+
+/machine-learning/mlruns
