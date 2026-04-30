@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+# todo: THIS MUST BE FIXED IN A BETTER WAY PROBABLY
+# todo: whit needs to be solved in a better way - not with a file shared between backend and machine-learning
 class DatePreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, col):
         self.col = col
@@ -43,5 +45,5 @@ class SlidingWindowTransformer(BaseEstimator, TransformerMixin):
         X, y = [], []
         for i in range(len(data) - window_size):
             X.append(data[i:i + window_size])
-            y.append(data[i + window_size]) # TODO: this is correct right?
+            y.append(data[i + window_size])  # TODO: this is correct right?
         return np.array(X), np.array(y)

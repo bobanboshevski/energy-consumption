@@ -1,5 +1,4 @@
 import os
-import sys
 import joblib
 import random
 import yaml
@@ -14,7 +13,14 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
-from preprocess import DatePreprocessor, SlidingWindowTransformer
+from pathlib import Path
+import sys
+
+# todo: this needs to be checked if it works properly in both /backend and /machine-learning
+from shared.preprocess import DatePreprocessor, SlidingWindowTransformer
+# sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "shared"))
+# from preprocess import DatePreprocessor, SlidingWindowTransformer
+
 from dotenv import load_dotenv
 import mlflow
 
@@ -76,6 +82,8 @@ with mlflow.start_run(run_name="train_energy_demand"):
     # Load data — only historical rows with known target
     # ─────────────────────────────────────────────
     df = pd.read_csv(data_path)
+    # todo BUG: here we also need to check if the target is not null, because sometimes the energy demand data is late couple of days
+    # i already fixed this when merging the datasets!
     df = df[df["is_forecast"] == False].copy()
     df = df[df[target_col].notna()].copy()
 
