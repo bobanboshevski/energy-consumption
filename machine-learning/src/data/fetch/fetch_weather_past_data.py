@@ -1,6 +1,7 @@
 from datetime import datetime
 from src.data.utils.weather_utils import ensure_directory, load_existing_data, fetch_json, save_data
 import yaml
+from datetime import timedelta
 
 params = yaml.safe_load(open("params.yaml"))["fetch"]["weather_history"]
 
@@ -17,8 +18,30 @@ def get_from_date(existing_data):
     return INITIAL_DATE
 
 
+# def get_today():
+#     return datetime.now().strftime("%Y-%m-%d")
+
+# def get_today():
+#     """
+#     The Open-Meteo archive API lags by 1-2 days.
+#     Try today, then fall back to yesterday if the API rejects it.
+#     """
+#     return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
 def get_today():
-    return datetime.now().strftime("%Y-%m-%d")
+    """
+    Try today first, then fall back day by day.
+    The Open-Meteo archive API lags 1-2 days so today is often not available yet.
+    """
+    for days_back in range(0, 3):
+        candidate = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
+        test_url = build_url(candidate, candidate)
+        try:
+            fetch_json(test_url)
+            return candidate
+        except Exception:
+            continue
+    return (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
 
 
 def build_url(from_date, to_date):
