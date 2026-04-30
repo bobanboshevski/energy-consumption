@@ -32,6 +32,12 @@ random_state = train_params["random_state"]
 data_path = preprocess_params["output_path"]
 
 # ─────────────────────────────────────────────
+# MLflow setup
+# ─────────────────────────────────────────────
+mlflow.set_tracking_uri("https://dagshub.com/bobanboshevski/energy-consumption.mlflow")
+mlflow.set_experiment("energy_demand_univariate_train")
+
+# ─────────────────────────────────────────────
 # Reproducibility
 # ─────────────────────────────────────────────
 os.environ["PYTHONHASHSEED"] = str(random_state)
