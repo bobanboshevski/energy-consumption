@@ -25,8 +25,8 @@ stages:
     deps:
     - path: src/data/fetch/fetch_weather_past_data.py
       hash: md5
-      md5: f11472cc030965e0a383d11bfb96f9f0
-      size: 1960
+      md5: c03fa00572d569c9926f0cedc14e971b
+      size: 2751
     params:
       params.yaml:
         fetch.weather_history.lat: 46.05
