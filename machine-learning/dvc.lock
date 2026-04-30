@@ -162,26 +162,26 @@ stages:
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: b64c5bb5c2e48c2935b8815be907fd04
-      size: 118236
+      md5: 6baa5213ac17662400c585ab74c18f11
+      size: 118273
     - path: data/reference
       hash: md5
-      md5: 7f9ab14098fa7f8077aca602f46d0453.dir
-      size: 117967
+      md5: cfd9f6d9d8e46f22a549eb60d1601e52.dir
+      size: 118004
       nfiles: 1
     - path: gx/uncommitted
       hash: md5
-      md5: b5f6882a65ca824aa0650b7003168294.dir
-      size: 4971596
-      nfiles: 44
+      md5: c191178824d8af4fd60d08aa0ebe069d.dir
+      size: 5126892
+      nfiles: 48
     - path: src/models/preprocess.py
       hash: md5
       md5: 5f4aa161479b881298bb07f1cd9c7d38
       size: 1603
     - path: src/models/train_univariate.py
       hash: md5
-      md5: df7fe5e78e046106fe1fb1d2f2c178af
-      size: 9029
+      md5: 771f9b2756a9c9dd8b05bd1d0e8c7811
+      size: 9465
     params:
       params.yaml:
         train_univariate.random_state: 42
@@ -191,7 +191,7 @@ stages:
     outs:
     - path: models/model_energy_demand_univariate.keras
       hash: md5
-      md5: 51e258e17d617be68db0dadd439765da
+      md5: d522f0f8b2eee3949ef9fd2a112a8d4f
       size: 807104
     - path: models/pipeline_univariate.pkl
       hash: md5
