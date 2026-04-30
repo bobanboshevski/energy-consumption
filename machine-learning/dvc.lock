@@ -116,18 +116,18 @@ stages:
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: b64c5bb5c2e48c2935b8815be907fd04
-      size: 118236
+      md5: 6baa5213ac17662400c585ab74c18f11
+      size: 118273
     - path: data/reference
       hash: md5
-      md5: 7f9ab14098fa7f8077aca602f46d0453.dir
-      size: 117967
+      md5: cfd9f6d9d8e46f22a549eb60d1601e52.dir
+      size: 118004
       nfiles: 1
     - path: gx/uncommitted
       hash: md5
-      md5: b5f6882a65ca824aa0650b7003168294.dir
-      size: 4971596
-      nfiles: 44
+      md5: c191178824d8af4fd60d08aa0ebe069d.dir
+      size: 5126892
+      nfiles: 48
     - path: src/models/preprocess.py
       hash: md5
       md5: 5f4aa161479b881298bb07f1cd9c7d38
@@ -149,7 +149,7 @@ stages:
     outs:
     - path: models/model_energy_demand.keras
       hash: md5
-      md5: d3a80a6e986862c1af813b5d99b09aab
+      md5: 42b489f9ad957502bf526784ab1ff933
       size: 411636
     - path: models/pipeline_energy_demand.pkl
       hash: md5
