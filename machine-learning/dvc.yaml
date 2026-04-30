@@ -107,8 +107,13 @@ stages:
       - train.window_size
       - train.target_col
       - train.feature_cols
+    #    outs:
+    #      - models/:
+    #          persist: true
     outs:
-      - models/:
+      - models/model_energy_demand.keras:
+          persist: true
+      - models/pipeline_energy_demand.pkl:
           persist: true
 
   train_univariate:
@@ -128,12 +133,12 @@ stages:
       - train_univariate.random_state
       - train_univariate.window_size
       - train_univariate.target_col
-    #    outs:
-    #      - models/model_energy_demand_univariate.keras:
-    #          persist: true
-    #      - models/pipeline_univariate.pkl:
-    #          persist: true
     outs:
-      - models/:
+      - models/model_energy_demand_univariate.keras:
           persist: true
+      - models/pipeline_univariate.pkl:
+          persist: true
+#    outs:
+#      - models/:
+#          persist: true
 
