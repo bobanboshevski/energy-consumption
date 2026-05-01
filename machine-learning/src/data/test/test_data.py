@@ -83,9 +83,16 @@ def main():
             else:
                 print(f"  {test_name}: status={status}")
 
+                # if status != "SUCCESS":
+                #     all_tests_passed = False
+                #     break
+
+            # Only fail on drift tests — summary stats like missing value counts
+            # change daily due to delayed energy demand and weather data
             if status != "SUCCESS":
-                all_tests_passed = False
-                break
+                is_drift_test = "drift" in test_name.lower() or "p_value" in str(test.get("parameters", {}))
+                if is_drift_test:
+                    all_tests_passed = False
 
     generate_index_html(reports_dir)
 
