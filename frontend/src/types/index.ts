@@ -49,6 +49,15 @@ export interface DriftReport {
     reason?: string;
 }
 
+export interface ValidationReport {
+    available: boolean;
+    size_kb?: number;
+    source?: string;
+    passed?: boolean;
+    reason?: string;
+    error?: string;
+}
+
 export interface ModelVersion {
     version: string;
     stage: string;

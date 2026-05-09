@@ -40,16 +40,11 @@ export const monitoringApi = {
     getDrift: () => api.get<DriftReport>("/monitoring/drift"), // todo: i dont even use this
     getDriftReportUrl: () =>
         `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"}/monitoring/drift/report`,
+
+    getGx: () => api.get<DriftReport>("/monitoring/gx"),
+    getGxReportUrl: () =>
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"}/monitoring/gx/report`,
 };
-
-
-// export const modelsApi = {
-//     getRegistry: () => api.get<RegisteredModel[]>("/models/registry"),
-//     getVersions: (modelName: string) => api.get(`/models/versions/${modelName}`),
-//     getExperiments: (name: string) => api.get<ExperimentRun[]>(`/models/experiments/${name}`),
-//     getActive: () => api.get("/models/active"),
-//     activate: (version: string) => api.post(`/models/activate?version=${version}`),
-// };
 
 export const modelsApi = {
     getRegistry: () => api.get<RegisteredModel[]>("/models/registry"),

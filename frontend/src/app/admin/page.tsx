@@ -130,6 +130,7 @@ import {ExperimentsTable} from "@/components/admin/ExperimentsTable";
 import {DriftStatus} from "@/components/admin/DriftStatus";
 import {Card, CardHeader} from "@/components/ui/Card";
 import {LoadingSpinner} from "@/components/ui/LoadingSpinner";
+import {GxStatus} from "@/components/admin/GxStatus";
 
 type Tab = "monitoring" | "models" | "experiments";
 
@@ -146,7 +147,8 @@ export default function AdminPage() {
     const {
         metrics, performance,
         univariateMetrics, univariatePerformance,
-        drift, models, runs, loadingModels,
+        drift, validationReport,
+        models, runs, loadingModels,
         isInitialLoading, loadingMonitoring,
         windowDays, setWindowDays,
         reload, reloadModels,
@@ -219,15 +221,32 @@ export default function AdminPage() {
 
                             {/* Drift only shown for multivariate (shared report) */}
                             {modelView === "multivariate" && (
-                                <Card>
-                                    <CardHeader title="Data Drift Report" subtitle="Latest Evidently drift analysis"/>
-                                    <div className="px-6 pb-6">
-                                        {drift
-                                            ? <DriftStatus drift={drift}/>
-                                            : <p className="text-gray-500 text-sm py-4">Drift data unavailable.</p>
-                                        }
-                                    </div>
-                                </Card>
+                                <>
+                                    <Card>
+                                        <CardHeader title="Data Drift Report"
+                                                    subtitle="Latest Evidently drift analysis"/>
+                                        <div className="px-6 pb-6">
+                                            {drift
+                                                ? <DriftStatus drift={drift}/>
+                                                : <p className="text-gray-500 text-sm py-4">Drift data unavailable.</p>
+                                            }
+                                        </div>
+                                    </Card>
+
+                                    <Card>
+                                        <CardHeader
+                                            title="Data Validation Report"
+                                            subtitle="Latest Great Expectations checkpoint results"
+                                        />
+                                        <div className="px-6 pb-6">
+                                            {validationReport
+                                                ? <GxStatus report={validationReport}/>
+                                                : <p className="text-gray-500 text-sm py-4">Validation report
+                                                    unavailable.</p>
+                                            }
+                                        </div>
+                                    </Card>
+                                </>
                             )}
                         </>
                     )}
