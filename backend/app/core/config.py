@@ -16,8 +16,15 @@ class Settings(BaseSettings):
     MLFLOW_TRACKING_URI: str = "https://dagshub.com/bobanboshevski/energy-consumption.mlflow"
     MLFLOW_TRACKING_USERNAME: str = ""
     MLFLOW_TRACKING_PASSWORD: str = ""
+
+    # Multivariate model (model 1 — weather + energy, 16 days ahead)
     MLFLOW_MODEL_NAME: str = "energy_demand_model"
-    MLFLOW_MODEL_ALIAS: str = "champion"  # modern MLflow uses aliases not stages
+    MLFLOW_MODEL_ALIAS: str = "champion"  # todo: this is not used
+
+    # Univariate model (model 2 — energy only, up to 365 days ahead)
+    MLFLOW_UNIVARIATE_MODEL_NAME: str = "energy_demand_univariate_model"
+    UNIVARIATE_WINDOW_SIZE: int = 60
+    UNIVARIATE_MAX_HORIZON_DAYS: int = 365
 
     # DagShub repo info — used to download data via HTTP API
     DAGSHUB_USERNAME: str = "bobanboshevski"
@@ -35,12 +42,20 @@ class Settings(BaseSettings):
     REFERENCE_PATH: str = str(_ML_DIR / "data/reference/final_dataset.csv")
     MODEL_PATH: str = str(_ML_DIR / "models/model_energy_demand.keras")
     PIPELINE_PATH: str = str(_ML_DIR / "models/pipeline_energy_demand.pkl")
+    UNIVARIATE_MODEL_PATH: str = str(_ML_DIR / "models/model_energy_demand_univariate.keras")
+    UNIVARIATE_PIPELINE_PATH: str = str(_ML_DIR / "models/pipeline_univariate.pkl")
     DRIFT_REPORT_PATH: str = str(_ML_DIR / "reports/data_testing_report.html")
+
+    GX_REPORT_PATH: str = str(_ML_DIR / "reports/gx_validation_report.html")
+    DAGSHUB_GX_REPORT_PATH: str = "machine-learning/reports/gx_validation_report.html"
 
     # Model config
     WINDOW_SIZE: int = 30
     TARGET_COL: str = "energy_demand"
     FEATURE_COLS: list = ["temp_max", "temp_min", "daylight_duration"]
+
+    DEMAND_LOW_THRESHOLD: float = 1.2
+    DEMAND_HIGH_THRESHOLD: float = 1.6
 
     # Second model — uncomment when classifier is ready
     # CLASSIFIER_PATH: str = str(_ML_DIR / "models/classifier_energy_demand.pkl")

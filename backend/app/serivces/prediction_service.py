@@ -147,15 +147,23 @@ def _save_predictions(predictions: list):
         json.dump(log, f, indent=2)
 
 
+# def _classify_demand_simple(value: float) -> str:
+#     # todo: this is temporary, i will later develop the second model
+#     """
+#     Simple rule-based fallback classifier until the ML classifier is ready.
+#     Remove this when classifier is uncommented above.
+#     """
+#     if value < 1.2:
+#         return "low"
+#     elif value < 1.6:
+#         return "medium"
+#     else:
+#         return "high"
+
 def _classify_demand_simple(value: float) -> str:
-    # todo: this is temporary, i will later develop the second model
-    """
-    Simple rule-based fallback classifier until the ML classifier is ready.
-    Remove this when classifier is uncommented above.
-    """
-    if value < 1.2:
+    if value < settings.DEMAND_LOW_THRESHOLD:
         return "low"
-    elif value < 1.6:
+    elif value < settings.DEMAND_HIGH_THRESHOLD:
         return "medium"
     else:
         return "high"

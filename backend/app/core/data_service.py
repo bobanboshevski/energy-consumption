@@ -99,7 +99,7 @@ def get_drift_report_html() -> str | None:
     Downloads the Evidently drift report HTML from DagShub.
     Falls back to local file if unavailable.
     """
-    dagshub_path = f"machine-learning/reports/data_testing_report.html"
+    dagshub_path = f"machine-learning/reports/data_testing_report.html"  # todo: this can be add to config.py
 
     try:
         content = _download_from_dagshub(dagshub_path)
@@ -109,6 +109,24 @@ def get_drift_report_html() -> str | None:
 
     local_path = Path(settings.DRIFT_REPORT_PATH)
     print(f"Using the local drift report at: {local_path}")
+    if local_path.exists():
+        return local_path.read_text()
+
+    return None
+
+
+def get_gx_report_html() -> str | None:
+    """
+        Downloads the Great Expectations validation report HTML from DagShub.
+        Falls back to local file if unavailable.
+        """
+    try:
+        content = _download_from_dagshub(settings.DAGSHUB_GX_REPORT_PATH)
+        return content.decode("utf-8")
+    except Exception as e:
+        print(f"WARNING: Could not download GX report from DagShub ({e}). Falling back to local.")
+
+    local_path = Path(settings.GX_REPORT_PATH)
     if local_path.exists():
         return local_path.read_text()
 

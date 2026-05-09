@@ -134,6 +134,8 @@ import {ForecastChart} from "@/components/forecast/ForecastChart";
 import {ForecastTable} from "@/components/forecast/ForecastTable";
 import {LoadingSpinner} from "@/components/ui/LoadingSpinner";
 import {Card, CardHeader} from "@/components/ui/Card";
+import {DatePredictionTool} from "@/components/univariate/DatePredictionTool";
+import {LongRangeForecastChart} from "@/components/univariate/LongRangeForecastChart";
 
 export default function HomePage() {
     const {forecast, historical, loading, error, refresh} = useForecast();
@@ -158,6 +160,8 @@ export default function HomePage() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-8">
+
+            {/* ── Header ──────────────────────────────────────────────── */}
             <div className="flex items-start justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Energy Demand Forecast</h1>
@@ -173,6 +177,7 @@ export default function HomePage() {
                 </button>
             </div>
 
+            {/* ── Next 3 days cards ───────────────────────────────────── */}
             <ForecastCards forecast={forecast}/>
 
             <Card className="mb-6 p-6">
@@ -183,6 +188,7 @@ export default function HomePage() {
                 <ForecastChart historical={historical} forecast={forecast} todayDate={todayDate}/>
             </Card>
 
+            {/* ── Short-range forecast table ───────────────────────────── */}
             <Card>
                 <CardHeader
                     title="Detailed Forecast"
@@ -192,6 +198,39 @@ export default function HomePage() {
                     <ForecastTable forecast={forecast}/>
                 </div>
             </Card>
+
+            {/* ── Long-range section divider ───────────────────────────── */}
+            <div className="flex items-center gap-4 py-2 mt-2 mb-2">
+                <div className="flex-1 h-px bg-gray-800"/>
+                <span className="text-s text-gray-600 uppercase tracking-widest font-medium">
+                        Long-range prediction · up to 365 days
+                    </span>
+                <div className="flex-1 h-px bg-gray-800"/>
+            </div>
+
+            {/* ── Two-column: date picker + long-range chart ──────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                <Card className="p-6">
+                    <CardHeader
+                        title="Predict Any Date"
+                        subtitle="Select a specific date up to 365 days ahead"
+                    />
+                    <div className="px-6 pb-6">
+                        <DatePredictionTool/>
+                    </div>
+                </Card>
+
+                <Card className="p-6">
+                    <CardHeader
+                        title="Long-range Outlook"
+                        subtitle="Energy demand trend over the coming months"
+                    />
+                    <div className="px-6 pb-6">
+                        <LongRangeForecastChart/>
+                    </div>
+                </Card>
+            </div>
+
         </div>
     );
 }

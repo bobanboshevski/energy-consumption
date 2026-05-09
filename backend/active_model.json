@@ -1,4 +1,8 @@
 {
-  "model_name": "energy_demand_model",
-  "active_version": "10"
+  "multivariate": {
+    "active_version": "17"
+  },
+  "univariate": {
+    "active_version": "5"
+  }
 }
