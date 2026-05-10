@@ -1,11 +1,11 @@
 from fastapi import APIRouter
 
 from app.core.activate_model import set_active_version, get_active_version, MODEL_MULTIVARIATE, \
-    MODEL_UNIVARIATE
+    MODEL_UNIVARIATE, get_full_state
 from app.core.config import settings
 from app.core.mlflow_client import get_registered_models, get_experiment_runs, get_all_model_versions, \
     transition_model_version
-from app.core.model_loader import reload_models, get_loaded_version, get_univariate_loaded_version
+from app.core.model_loader import reload_models  # get_loaded_version, get_univariate_loaded_version
 
 router = APIRouter(prefix="/models", tags=["models"])
 
@@ -20,13 +20,6 @@ def registry():
 def experiments(experiment_name: str):
     return get_experiment_runs(experiment_name)
 
-
-# @router.get("/transition")
-# def transition(model_name: str, version: str, stage: str):
-#     result = transition_model_version(model_name, version, stage)
-#     # Force reload so next prediction request uses the newly promoted model
-#     reload_models()
-#     return result
 
 @router.get("/versions/{model_name}")
 def versions(model_name: str):
@@ -43,37 +36,7 @@ def versions(model_name: str):
 # ── Active model state ────────────────────────────────────────────────────────
 
 # TODO: WE SHOULD DISPLAY THE VERSIONS OF THE MODELS ON THE UI AS ENUMS, Since if we write a version that doesn't exists
-# todo: i falls back the the latest one
-# @router.get("/active")
-# def active():
-#     """Returns which model version is currently active and loaded."""
-#     state = get_active_model_state()
-#     state["loaded_version"] = get_loaded_version()
-#     return state
-
-@router.get("/active")
-def active():
-    """Returns active and loaded version for both models."""
-    return {
-        "multivariate": {
-            "active_version": get_active_version(MODEL_MULTIVARIATE),
-            "loaded_version": get_loaded_version(),
-            "model_name": settings.MLFLOW_MODEL_NAME,
-        },
-        "univariate": {
-            "active_version": get_active_version(MODEL_UNIVARIATE),
-            "loaded_version": get_univariate_loaded_version(),
-            "model_name": settings.MLFLOW_UNIVARIATE_MODEL_NAME,
-        },
-    }
-
-
-# @router.post("/activate")
-# def activate(version: str):
-#     """Sets a specific model version as active. Backend reloads the model on next request."""
-#     result = set_active_version(version)
-#     reload_models()
-#     return result
+# todo: it falls back the the latest one
 
 @router.post("/activate")
 def activate(version: str, model_key: str = MODEL_MULTIVARIATE):
@@ -92,6 +55,32 @@ def activate(version: str, model_key: str = MODEL_MULTIVARIATE):
     return result
 
 
+@router.get("/active")
+def active():
+    """
+    Returns active and loaded version for both models, read directly from active_model.json.
+    active_version  — configured version (changes immediately on /activate)
+    loaded_version  — version in memory (updates on next prediction request)
+    """
+    state = get_full_state()
+
+    def model_info(model_key: str, model_name: str) -> dict:
+        entry = state.get(model_key, {})
+        active_v = entry.get("active_version", "latest")
+        loaded_v = entry.get("loaded_version")
+        return {
+            "active_version": active_v,
+            "loaded_version": loaded_v,
+            "is_loaded": loaded_v is not None,
+            "model_name": model_name,
+        }
+
+    return {
+        "multivariate": model_info(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME),
+        "univariate": model_info(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME),
+    }
+
+
 # todo: this is not used i think
 @router.post("/transition")
 def transition(model_name: str, version: str, stage: str):
@@ -99,16 +88,3 @@ def transition(model_name: str, version: str, stage: str):
     result = transition_model_version(model_name, version, stage)
     reload_models()
     return result
-
-# @router.post("/alias")
-# def set_alias(model_name: str, alias: str, version: str):
-#     result = set_model_alias(model_name, alias, version)
-#     reload_models()
-#     return result
-#
-#
-# @router.delete("/alias")
-# def remove_alias(model_name: str, alias: str):
-#     result = delete_model_alias(model_name, alias)
-#     reload_models()
-#     return result

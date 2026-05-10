@@ -107,3 +107,15 @@ export interface UnivariateModelInfo {
     max_date: string;
     note: string;
 }
+
+interface ActiveModelInfo {
+    active_version: string;
+    loaded_version: string | null;   // null = not yet loaded
+    is_loaded: boolean;
+    model_name: string;
+}
+
+interface ActiveState {
+    multivariate: ActiveModelInfo;
+    univariate: ActiveModelInfo;
+}

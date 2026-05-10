@@ -7,23 +7,19 @@ import mlflow.tensorflow
 import joblib
 from tensorflow import keras
 
-from app.core.activate_model import get_active_version
+from app.core.activate_model import (
+    get_active_version, set_loaded_version,
+    MODEL_MULTIVARIATE, MODEL_UNIVARIATE,
+)
 from app.core.config import settings
 
-# Make shared preprocess module available for pipeline unpickling
-# todo: i duplicated that code, which is not the best way to do it, but because of that it's not shared anymore
 _SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
 sys.path.insert(0, str(_SHARED_DIR))
 
-# ── Multivariate model (model 1) ──────────────────────────────────────────────
 _model = None
 _pipeline = None
-_loaded_version = None
-
-# ── Univariate model (model 2) ────────────────────────────────────────────────
 _univariate_model = None
 _univariate_pipeline = None
-_univariate_loaded_version = None
 
 
 def _setup_mlflow():
@@ -32,145 +28,97 @@ def _setup_mlflow():
     mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 
 
-def _resolve_version() -> str:
-    """Gets the version to load — either a specific number or finds the latest."""
-    active = get_active_version()
+def _resolve_version(model_key: str, model_name: str) -> str:
+    active = get_active_version(model_key)
     if active != "latest":
         return active
-
     try:
         _setup_mlflow()
         client = mlflow.tracking.MlflowClient()
-        versions = client.search_model_versions(f"name='{settings.MLFLOW_MODEL_NAME}'")
-        if versions:
-            latest = max(versions, key=lambda v: int(v.version))
-            return latest.version
-    except Exception as e:
-        print(f"WARNING: Could not resolve latest version: {e}")
-
-    return "1"
-
-
-def _resolve_univariate_version() -> str:
-    """Resolves the latest version of the univariate model."""
-    try:
-        _setup_mlflow()
-        client = mlflow.tracking.MlflowClient()
-        versions = client.search_model_versions(f"name='{settings.MLFLOW_UNIVARIATE_MODEL_NAME}'")
+        versions = client.search_model_versions(f"name='{model_name}'")
         if versions:
             return max(versions, key=lambda v: int(v.version)).version
     except Exception as e:
-        print(f"WARNING: Could not resolve univariate version: {e}")
-
+        print(f"WARNING: Could not resolve latest version for {model_name}: {e}")
     return "1"
 
 
 def _load_pipeline_from_mlflow(model_name: str, version: str, artifact_filename: str):
-    """Downloads and loads a pipeline artifact from MLflow."""
     _setup_mlflow()
     client = mlflow.tracking.MlflowClient()
-    model_version = client.get_model_version(model_name, version)
-    run_id = model_version.run_id
-
+    run_id = client.get_model_version(model_name, version).run_id
     with tempfile.TemporaryDirectory() as tmp_dir:
         local_path = mlflow.artifacts.download_artifacts(
             run_id=run_id,
             artifact_path=artifact_filename,
-            dst_path=tmp_dir
+            dst_path=tmp_dir,
         )
         return joblib.load(local_path)
 
 
-# ── Multivariate loaders ──────────────────────────────────────────────────────
+# ── Multivariate ──────────────────────────────────────────────────────────────
+
 def load_model():
-    global _model, _loaded_version
+    global _model
     if _model is not None:
         return _model
 
-    version = _resolve_version()
+    version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
+    print(f"Loading multivariate model with version {version}")
 
     try:
         _setup_mlflow()
-        model_uri = f"models:/{settings.MLFLOW_MODEL_NAME}/{version}"
-        _model = mlflow.tensorflow.load_model(model_uri)
-        _loaded_version = version
-        print(f"Model loaded from MLflow: {model_uri} (version {version})")
+        _model = mlflow.tensorflow.load_model(f"models:/{settings.MLFLOW_MODEL_NAME}/{version}")
+        print(f"Multivariate model loaded from MLflow (v{version})")
     except Exception as e:
-        print(f"WARNING: Could not load model from MLflow ({e}). Falling back to local file.")
+        print(f"WARNING: MLflow load failed ({e}). Falling back to local file.")
         _model = keras.models.load_model(settings.MODEL_PATH)
-        _loaded_version = "local"
+        version = "local"
 
+    set_loaded_version(version, MODEL_MULTIVARIATE)
     return _model
 
-
-# def load_pipeline():
-#     global _pipeline
-#     if _pipeline is not None:
-#         return _pipeline
-#
-#     version = _resolve_version()
-#
-#     try:
-#         _setup_mlflow()
-#         client = mlflow.tracking.MlflowClient()
-#
-#         model_version = client.get_model_version(settings.MLFLOW_MODEL_NAME, version)
-#         run_id = model_version.run_id
-#
-#         with tempfile.TemporaryDirectory() as tmp_dir:
-#             local_path = mlflow.artifacts.download_artifacts(
-#                 run_id=run_id,
-#                 artifact_path="pipeline_energy_demand.pkl",
-#                 dst_path=tmp_dir
-#             )
-#             _pipeline = joblib.load(local_path)
-#
-#         print(f"Pipeline loaded from MLflow run: {run_id} (version {version})")
-#
-#     except Exception as e:
-#         print(f"WARNING: Could not load pipeline from MLflow ({e}). Falling back to local file.")
-#         _pipeline = joblib.load(settings.PIPELINE_PATH)
-#
-#     return _pipeline
 
 def load_pipeline():
     global _pipeline
     if _pipeline is not None:
         return _pipeline
 
-    version = _resolve_version()
+    version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
 
     try:
         _pipeline = _load_pipeline_from_mlflow(
             settings.MLFLOW_MODEL_NAME, version, "pipeline_energy_demand.pkl"
         )
-        print(f"Multivariate pipeline loaded from MLflow (version {version})")
+        print(f"Multivariate pipeline loaded from MLflow (v{version})")
     except Exception as e:
-        print(f"WARNING: Could not load multivariate pipeline from MLflow ({e}). Falling back to local.")
+        print(f"WARNING: MLflow pipeline load failed ({e}). Falling back to local.")
         _pipeline = joblib.load(settings.PIPELINE_PATH)
 
     return _pipeline
 
 
-# ── Univariate loaders ────────────────────────────────────────────────────────
+# ── Univariate ────────────────────────────────────────────────────────────────
+
 def load_univariate_model():
-    global _univariate_model, _univariate_loaded_version
+    global _univariate_model
     if _univariate_model is not None:
         return _univariate_model
 
-    version = _resolve_univariate_version()
+    version = _resolve_version(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME)
 
     try:
         _setup_mlflow()
-        model_uri = f"models:/{settings.MLFLOW_UNIVARIATE_MODEL_NAME}/{version}"
-        _univariate_model = mlflow.tensorflow.load_model(model_uri)
-        _univariate_loaded_version = version
-        print(f"Univariate model loaded from MLflow: {model_uri}")
+        _univariate_model = mlflow.tensorflow.load_model(
+            f"models:/{settings.MLFLOW_UNIVARIATE_MODEL_NAME}/{version}"
+        )
+        print(f"Univariate model loaded from MLflow (v{version})")
     except Exception as e:
-        print(f"WARNING: Could not load univariate model from MLflow ({e}). Falling back to local.")
+        print(f"WARNING: MLflow univariate load failed ({e}). Falling back to local.")
         _univariate_model = keras.models.load_model(settings.UNIVARIATE_MODEL_PATH)
-        _univariate_loaded_version = "local"
+        version = "local"
 
+    set_loaded_version(version, MODEL_UNIVARIATE)
     return _univariate_model
 
 
@@ -179,42 +127,27 @@ def load_univariate_pipeline():
     if _univariate_pipeline is not None:
         return _univariate_pipeline
 
-    version = _resolve_univariate_version()
+    version = _resolve_version(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME)
 
     try:
         _univariate_pipeline = _load_pipeline_from_mlflow(
             settings.MLFLOW_UNIVARIATE_MODEL_NAME, version, "pipeline_univariate.pkl"
         )
-        print(f"Univariate pipeline loaded from MLflow (version {version})")
+        print(f"Univariate pipeline loaded from MLflow (v{version})")
     except Exception as e:
-        print(f"WARNING: Could not load univariate pipeline from MLflow ({e}). Falling back to local.")
+        print(f"WARNING: MLflow univariate pipeline load failed ({e}). Falling back to local.")
         _univariate_pipeline = joblib.load(settings.UNIVARIATE_PIPELINE_PATH)
 
     return _univariate_pipeline
 
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
-def get_loaded_version() -> str:
-    return _loaded_version or "unknown"
-
-
-def get_univariate_loaded_version() -> str:
-    return _univariate_loaded_version or "unknown"
-
-
-# def reload_models():
-#     """Forces a reload of both model and pipeline on the next request. Used after model transition."""
-#     global _model, _pipeline
-#     _model = None
-#     _pipeline = None
 
 def reload_models():
-    """Forces reload of all models on next request. Called after model transition."""
-    global _model, _pipeline, _loaded_version
-    global _univariate_model, _univariate_pipeline, _univariate_loaded_version
+    """Clears in-memory models so next request reloads from MLflow."""
+    global _model, _pipeline, _univariate_model, _univariate_pipeline
     _model = None
     _pipeline = None
-    _loaded_version = None
     _univariate_model = None
     _univariate_pipeline = None
-    _univariate_loaded_version = None
+    print("Models cleared — will reload on next request.")

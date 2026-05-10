@@ -13,8 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
-from pathlib import Path
-import sys
+from multivariate_forecast_generator import generate_and_log_forecast
 
 # todo: this needs to be checked if it works properly in both /backend and /machine-learning
 # from shared.preprocess import DatePreprocessor, SlidingWindowTransformer
@@ -238,6 +237,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
     os.makedirs("models", exist_ok=True)
     model_path = "models/model_energy_demand.keras"
     pipeline_path = "models/pipeline_energy_demand.pkl"
+    predictions_path = "models/forecast_predictions.json"
 
     model.save(model_path)
     joblib.dump(pipeline, pipeline_path)
@@ -256,5 +256,25 @@ with mlflow.start_run(run_name="train_energy_demand"):
         print("Model registered in MLflow Model Registry!")
     except Exception as e:
         print(f"WARNING: Could not register model in MLflow: {e}")
+
+    # ─────────────────────────────────────────────
+    # Generate and log forecast predictions artifact
+    # ─────────────────────────────────────────────
+    # full dataset for prediction generation
+    try:
+        df_with_forecast = pd.read_csv(data_path)
+        generate_and_log_forecast(
+            model=model,
+            pipeline=pipeline,
+            df_full=df_with_forecast,
+            target_col=target_col,
+            feature_cols=feature_cols,
+            window_size=window_size,
+            output_dir="models",
+        )
+        mlflow.log_artifact(predictions_path)
+        print("Forecast predictions artifact logged to MLflow.")
+    except Exception as e:
+        print(f"WARNING: Could not generate forecast artifact: {e}")
 
     print("Model and pipeline saved to models/")
