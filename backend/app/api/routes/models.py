@@ -6,6 +6,8 @@ from app.core.config import settings
 from app.core.mlflow_client import get_registered_models, get_experiment_runs, get_all_model_versions, \
     transition_model_version
 from app.core.model_loader import reload_models  # get_loaded_version, get_univariate_loaded_version
+from fastapi import HTTPException
+from app.core.predictions_cache import invalidate_cache as invalidate_predictions_cache
 
 router = APIRouter(prefix="/models", tags=["models"])
 
@@ -37,7 +39,6 @@ def versions(model_name: str):
 
 # TODO: WE SHOULD DISPLAY THE VERSIONS OF THE MODELS ON THE UI AS ENUMS, Since if we write a version that doesn't exists
 # todo: it falls back the the latest one
-
 @router.post("/activate")
 def activate(version: str, model_key: str = MODEL_MULTIVARIATE):
     """
@@ -46,12 +47,12 @@ def activate(version: str, model_key: str = MODEL_MULTIVARIATE):
     version: version number string or 'latest'
     """
     if model_key not in (MODEL_MULTIVARIATE, MODEL_UNIVARIATE):
-        from fastapi import HTTPException
         raise HTTPException(status_code=400,
                             detail=f"Invalid model_key. Must be '{MODEL_MULTIVARIATE}' or '{MODEL_UNIVARIATE}'")
 
     result = set_active_version(version, model_key)
     reload_models()
+    invalidate_predictions_cache()  # force re-download artefact for the new model version
     return result
 
 

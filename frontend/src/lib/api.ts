@@ -7,7 +7,7 @@ import type {
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002",
-    timeout: 120000,
+    timeout: 240000,
 });
 
 export const predictionsApi = {
