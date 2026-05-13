@@ -14,6 +14,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from multivariate_forecast_generator import generate_and_log_forecast
+from onnx_exporter import export_and_quantize
 
 # todo: this needs to be checked if it works properly in both /backend and /machine-learning
 # from shared.preprocess import DatePreprocessor, SlidingWindowTransformer
@@ -225,7 +226,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
     rmse_full = np.sqrt(mse_full)
     print(f"Full dataset MAE:  {mae_full:.4f}")
     print(f"Full dataset MSE:  {mse_full:.4f}")
-    print(f"Full dataset RMSE: {rmse:.4f}")
+    print(f"Full dataset RMSE: {rmse_full:.4f}")
 
     mlflow.log_metric("full_mae", mae_full)
     mlflow.log_metric("full_mse", mse_full)
@@ -258,6 +259,26 @@ with mlflow.start_run(run_name="train_energy_demand"):
         print(f"WARNING: Could not register model in MLflow: {e}")
 
     # ─────────────────────────────────────────────
+    # Export to ONNX (base + quantized)
+    # ─────────────────────────────────────────────
+    # it's the same as above, i keep it here for clarity
+    input_shape = (X_full.shape[1], X_full.shape[2])  # (window_size, n_features)
+
+    onnx_artefacts = export_and_quantize(
+        model=model,
+        input_shape=input_shape,
+        output_dir="models",
+        model_name="model_energy_demand",
+    )
+
+    for artifact_path in onnx_artefacts.values():
+        try:
+            mlflow.log_artifact(artifact_path)
+            print(f"ONNX artifact logged to MLflow: {artifact_path}")
+        except Exception as e:
+            print(f"WARNING: Could not log ONNX artifact {artifact_path} to MLflow: {e}")
+
+    # ─────────────────────────────────────────────
     # Generate and log forecast predictions artifact
     # ─────────────────────────────────────────────
     # full dataset for prediction generation
@@ -272,7 +293,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
             window_size=window_size,
             output_dir="models",
         )
-        mlflow.log_artifact(predictions_path)
+        mlflow.log_artifact(predictions_path)  # todo: check this
         print("Forecast predictions artifact logged to MLflow.")
     except Exception as e:
         print(f"WARNING: Could not generate forecast artifact: {e}")
