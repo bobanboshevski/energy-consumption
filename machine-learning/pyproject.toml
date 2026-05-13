@@ -13,7 +13,7 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "great-expectations==0.18.21",
     "evidently>=0.7.1,<0.8.0",
-    "tensorflow>=2.19.0,<3.0.0",
+    "tensorflow>=2.19.0,<2.20.0",
     "matplotlib>=3.10.9",
     "mlflow>=2.22.0,<3.0.0",
     "python-dotenv>=1.2.2",
@@ -21,4 +21,5 @@ dependencies = [
     "onnx>=1.17.0",
     "tf2onnx>=1.16.0",
     "sympy>=1.14.0",
+    "tensorboard>=2.19.0",
 ]
