@@ -1,8 +1,4 @@
-import tf2onnx
-import onnx
-import tensorflow as tf
 from pathlib import Path
-from onnxruntime.quantization import quantize_dynamic, QuantType
 
 """
 Exporting a trained Keras model to ONNX format with optional INT8 quantization.
@@ -36,6 +32,10 @@ def export_to_onnx(
         Path to the saved .onnx file, or None if conversion failed.
     """
     try:
+        # lazy imports
+        import tf2onnx
+        import onnx
+        import tensorflow as tf
 
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         onnx_path = str(Path(output_dir) / f"{model_name}.onnx")
@@ -83,6 +83,8 @@ def quantize_onnx(onnx_path: str) -> str | None:
         Path to the quantized .onnx file, or None if quantization failed.
     """
     try:
+        # lazy import
+        from onnxruntime.quantization import quantize_dynamic, QuantType
 
         quantized_path = onnx_path.replace(".onnx", "_quantized.onnx")
 
