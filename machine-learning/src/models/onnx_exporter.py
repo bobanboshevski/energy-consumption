@@ -40,15 +40,36 @@ def export_to_onnx(
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         onnx_path = str(Path(output_dir) / f"{model_name}.onnx")
 
-        saved_model_dir = str(Path(output_dir) / f"{model_name}_savedmodel")
-        model.export(saved_model_dir)
+        # Trace a concrete TF function directly — bypasses Keras 3 serialization
+        # issues that break both from_keras() and from_saved_model()
+        input_spec = tf.TensorSpec(
+            shape=(None, input_shape[0], input_shape[1]),
+            dtype=tf.float32,
+            name="input",
+        )
 
-        # converting from SavedModel to ONNX
-        onnx_model, _ = tf2onnx.convert.from_saved_model(
-            saved_model_dir,
+        @tf.function(input_signature=[input_spec])
+        def serving_fn(x):
+            return model(x, training=False)
+
+        concrete_fn = serving_fn.get_concrete_function()
+
+        onnx_model, _ = tf2onnx.convert.from_function(
+            concrete_fn,
+            input_signature=[input_spec],
             opset=opset,
             output_path=onnx_path,
         )
+
+        # saved_model_dir = str(Path(output_dir) / f"{model_name}_savedmodel")
+        # model.export(saved_model_dir)
+
+        # converting from SavedModel to ONNX
+        # onnx_model, _ = tf2onnx.convert.from_saved_model(
+        #     saved_model_dir,
+        #     opset=opset,
+        #     output_path=onnx_path,
+        # )
 
         # Input signature: batch_size is dynamic (None)
         # input_signature = [
