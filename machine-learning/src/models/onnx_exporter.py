@@ -37,19 +37,37 @@ def export_to_onnx(
         import onnx
         import shutil
         import tensorflow as tf
+        import shutil
+        import subprocess
+        import sys
 
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         onnx_path = str(Path(output_dir) / f"{model_name}.onnx")
         saved_model_dir = str(Path(output_dir) / f"{model_name}_savedmodel")
 
+        # Step 1: export Keras model to SavedModel format
+        # model.export() works correctly in Keras 3 (TF 2.16+)
         model.export(saved_model_dir)
+        print(f"SavedModel exported to: {saved_model_dir}")
 
-        tf2onnx.convert.from_saved_model(
-            saved_model_dir,
-            opset=opset,
-            output_path=onnx_path,
+        # Step 2: convert SavedModel → ONNX via CLI
+        # The tf2onnx Python API renamed from_saved_model in 1.16.x;
+        # the CLI is stable across all versions
+        result = subprocess.run(
+            [
+                sys.executable, "-m", "tf2onnx.convert",
+                "--saved-model", saved_model_dir,
+                "--output", onnx_path,
+                "--opset", str(opset),
+            ],
+            capture_output=True,
+            text=True,
         )
 
+        if result.returncode != 0:
+            raise RuntimeError(f"tf2onnx CLI failed:\n{result.stderr}")
+
+        # Step 3: clean up the temporary SavedModel directory
         shutil.rmtree(saved_model_dir)
 
         size_mb = round(Path(onnx_path).stat().st_size / 1024 / 1024, 2)
