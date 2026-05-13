@@ -40,22 +40,31 @@ def export_to_onnx(
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         onnx_path = str(Path(output_dir) / f"{model_name}.onnx")
 
-        # Input signature: batch_size is dynamic (None)
+        saved_model_dir = str(Path(output_dir) / f"{model_name}_savedmodel")
+        model.export(saved_model_dir)
 
-        input_signature = [
-            tf.TensorSpec(
-                shape=(None, input_shape[0], input_shape[1]),
-                dtype=tf.float32,
-                name="input",
-            )
-        ]
-
-        onnx_model, _ = tf2onnx.convert.from_keras(
-            model,
-            input_signature=input_signature,
+        # converting from SavedModel to ONNX
+        onnx_model, _ = tf2onnx.convert.from_saved_model(
+            saved_model_dir,
             opset=opset,
+            output_path=onnx_path,
         )
-        onnx.save(onnx_model, onnx_path)
+
+        # Input signature: batch_size is dynamic (None)
+        # input_signature = [
+        #     tf.TensorSpec(
+        #         shape=(None, input_shape[0], input_shape[1]),
+        #         dtype=tf.float32,
+        #         name="input",
+        #     )
+        # ]
+        #
+        # onnx_model, _ = tf2onnx.convert.from_keras(
+        #     model,
+        #     input_signature=input_signature,
+        #     opset=opset,
+        # )
+        # onnx.save(onnx_model, onnx_path)
 
         size_mb = round(Path(onnx_path).stat().st_size / 1024 / 1024, 2)
         print(f"ONNX model saved: {onnx_path} ({size_mb} MB)")

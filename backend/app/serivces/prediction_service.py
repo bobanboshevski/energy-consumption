@@ -5,9 +5,11 @@ import numpy as np
 import tensorflow as tf
 import joblib
 import pandas as pd
+
+from app.core import onnx_runner
 from app.core.config import settings
 from app.core.data_service import get_data
-from app.core.model_loader import load_model, load_pipeline
+from app.core.model_loader import load_model, load_pipeline, predict_multivariate
 from datetime import datetime
 
 from app.core.predictions_cache import get_cached_predictions, save_live_cache
@@ -58,7 +60,10 @@ def get_forecast_data() -> list:
 
     # ── Fall back to live inference ────────────────────────────────────────────
     print("Running live inference (cache miss or unavailable)...")
-    return _run_live_inference(df, forecast)
+    result = _run_live_inference(df, forecast)
+    _save_predictions_log(result)
+    return result
+    # return _run_live_inference(df, forecast)
 
 
 # _ means private function
@@ -68,8 +73,12 @@ def _run_live_inference(df: pd.DataFrame, forecast: pd.DataFrame) -> list:
     print(f"[INFER] →  Starting live inference for {len(forecast)} date(s): "
           f"{forecast['Date'].iloc[0]} → {forecast['Date'].iloc[-1]}")
 
-    model = load_model()
+    # model = load_model()  # None if ONNX is loaded
+    load_model()  # ensures model/ONNX is loaded
     pipeline = load_pipeline()
+
+    use_onnx = onnx_runner.is_loaded()
+    print(f"[INFER]    Backend: {'ONNX Runtime' if use_onnx else 'Keras/TensorFlow'}")
 
     history = df[df[settings.TARGET_COL].notna()].copy()
 
@@ -92,10 +101,19 @@ def _run_live_inference(df: pd.DataFrame, forecast: pd.DataFrame) -> list:
 
     for i in range(len(forecast)):
         # Reshape window to (1, window_size, num_features)
-        X = window.reshape(1, settings.WINDOW_SIZE, len(all_cols))
+        # X = window.reshape(1, settings.WINDOW_SIZE, len(all_cols))
+        X = window.reshape(1, settings.WINDOW_SIZE, len(all_cols)).astype(np.float32)
+
+        pred_scaled = predict_multivariate(X)
+
+        # Use ONNX Runtime or Keras depending on what's loaded
+        # if use_onnx:
+        #     pred_scaled = onnx_runner.predict(X)
+        # else:
+        #     pred_scaled = model.predict(X, verbose=0)
 
         # Predict next day (scaled)
-        pred_scaled = model.predict(X, verbose=0)
+        # pred_scaled = model.predict(X, verbose=0)
 
         # Inverse transform to get actual GW value
         pred_value = float(target_scaler.inverse_transform(pred_scaled)[0][0])

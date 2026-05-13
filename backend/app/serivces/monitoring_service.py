@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 
 from app.core.data_service import get_data, get_drift_report_html, get_gx_report_html
-from app.core.model_loader import load_model, load_pipeline, load_univariate_model, load_univariate_pipeline
+from app.core.model_loader import load_model, load_pipeline, load_univariate_model, load_univariate_pipeline, \
+    predict_multivariate
 
 
 # ── Multivariate model monitoring ─────────────────────────────────────────────
@@ -31,7 +32,9 @@ def get_model_performance_over_time(window_days: int = 30) -> list:
     eval_start = max(0, len(df) - window_days - settings.WINDOW_SIZE)
     df = df.iloc[eval_start:].reset_index(drop=True)
 
-    model = load_model()
+    # model = load_model()
+    load_model()  # ensure loaded (ONNX or Keras)
+
     pipeline = load_pipeline()
 
     all_cols = [settings.TARGET_COL] + settings.FEATURE_COLS
@@ -57,7 +60,8 @@ def get_model_performance_over_time(window_days: int = 30) -> list:
         window = scaled[i - settings.WINDOW_SIZE:i]
         X = window.reshape(1, settings.WINDOW_SIZE, len(all_cols))
 
-        pred_scaled = model.predict(X, verbose=1)
+        # pred_scaled = model.predict(X, verbose=1)
+        pred_scaled = predict_multivariate(window.reshape(1, settings.WINDOW_SIZE, len(all_cols)).astype(np.float32))
 
         # Inverse transform: go from scaled [0,1] back to GW values
         pred_value = float(target_scaler.inverse_transform(pred_scaled)[0][0])
@@ -82,30 +86,6 @@ def get_current_metrics(window_days: int = 30) -> dict:
         return {}
     return _compute_metrics(perf)
 
-
-# def get_current_metrics() -> dict:
-#     # todo: which 30 days are we talking about?
-#     """Computes MAE, MSE, RMSE over the last 30 days of model performance."""
-#     perf = get_model_performance_over_time(
-#         window_days=30)  # todo: we can make this dinamically as the user selects the timeframe (like the graph on the UI)
-#     if not perf:
-#         return {}
-#
-#     errors = [float(p["error"]) for p in perf]
-#     actuals = [float(p["actual"]) for p in perf]
-#     preds = [float(p["predicted"]) for p in perf]
-#
-#     mae = float(mean_absolute_error(actuals, preds))
-#     mse = float(mean_squared_error(actuals, preds))
-#
-#     return {
-#         "mae": round(mae, 4),
-#         "mse": round(mse, 4),
-#         "rmse": round(float(np.sqrt(mse)), 4),
-#         "mean_error": round(float(np.mean(errors)), 4),
-#         "max_error": round(float(np.max(errors)), 4),
-#         "data_points": len(perf),
-#     }
 
 # ── Univariate model monitoring ───────────────────────────────────────────────
 def get_univariate_performance_over_time(window_days: int = 30) -> list:

@@ -6,6 +6,8 @@ import mlflow
 import mlflow.tensorflow
 import joblib
 from tensorflow import keras
+from app.core import onnx_runner
+import numpy as np
 
 from app.core.activate_model import (
     get_active_version, set_loaded_version,
@@ -58,17 +60,57 @@ def _load_pipeline_from_mlflow(model_name: str, version: str, artifact_filename:
 
 # ── Multivariate ──────────────────────────────────────────────────────────────
 
+# def load_model():
+#     global _model
+#     if _model is not None:
+#         return _model
+#
+#     version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
+#     print(f"Loading multivariate model with version {version}")
+#
+#     try:
+#         _setup_mlflow()
+#         _model = mlflow.tensorflow.load_model(f"models:/{settings.MLFLOW_MODEL_NAME}/{version}")
+#         print(f"Multivariate model loaded from MLflow (v{version})")
+#     except Exception as e:
+#         print(f"WARNING: MLflow load failed ({e}). Falling back to local file.")
+#         _model = keras.models.load_model(settings.MODEL_PATH)
+#         version = "local"
+#
+#     set_loaded_version(version, MODEL_MULTIVARIATE)
+#     return _model
+
+
 def load_model():
     global _model
-    if _model is not None:
-        return _model
+
+    if _model is not None or onnx_runner.is_loaded():
+        return _model  # None is fine if ONNX session is loaded
 
     version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
     print(f"Loading multivariate model with version {version}")
 
+    # Try ONNX first
     try:
         _setup_mlflow()
-        _model = mlflow.tensorflow.load_model(f"models:/{settings.MLFLOW_MODEL_NAME}/{version}")
+        client = mlflow.tracking.MlflowClient()
+        run_id = client.get_model_version(settings.MLFLOW_MODEL_NAME, version).run_id
+        onnx_loaded = onnx_runner.load_onnx_session(run_id, version)
+    except Exception as e:
+        print(f"[ONNX] ⚠  Could not attempt ONNX load: {e}")
+        onnx_loaded = False
+
+    if onnx_loaded:
+        set_loaded_version(version, MODEL_MULTIVARIATE)
+        print(f"[MODEL] ✓  Using ONNX Runtime for inference (v{version})")
+        return None  # callers must use predict_multivariate()
+
+    # Fall back to Keras
+    try:
+        _setup_mlflow()
+        _model = mlflow.tensorflow.load_model(
+            f"models:/{settings.MLFLOW_MODEL_NAME}/{version}"
+        )
         print(f"Multivariate model loaded from MLflow (v{version})")
     except Exception as e:
         print(f"WARNING: MLflow load failed ({e}). Falling back to local file.")
@@ -77,6 +119,21 @@ def load_model():
 
     set_loaded_version(version, MODEL_MULTIVARIATE)
     return _model
+
+
+def predict_multivariate(X: np.ndarray) -> np.ndarray:
+    """
+    Unified inference for the multivariate model.
+    Uses ONNX Runtime if loaded, otherwise Keras.
+    Callers never need to know which backend is active.
+
+    X shape: (1, window_size, n_features)
+    Returns: (1, 1)
+    """
+    if onnx_runner.is_loaded():
+        return onnx_runner.predict(X)
+    model = load_model()
+    return model.predict(X, verbose=1)
 
 
 def load_pipeline():
@@ -150,4 +207,5 @@ def reload_models():
     _pipeline = None
     _univariate_model = None
     _univariate_pipeline = None
+    onnx_runner.clear()  # clear ONNX session too
     print("Models cleared — will reload on next request.")
