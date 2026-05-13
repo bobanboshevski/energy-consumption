@@ -46,7 +46,15 @@ def fetch_data(from_date: str, to_date: str) -> list:
     url = f"{BASE_URL}?from={from_date}&to={to_date}&precision=day"
     print(f"Fetching data from {from_date} to {to_date}...")
 
-    response = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://www.iea.org/",
+        "Origin": "https://www.iea.org",
+    }
+
+    response = requests.get(url=url, headers=headers, timeout=60)
     response.raise_for_status()
 
     return response.json()
