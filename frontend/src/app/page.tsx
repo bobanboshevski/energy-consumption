@@ -143,7 +143,8 @@ export default function HomePage() {
 //   const todayDate = historical.length > 0 ? historical[historical.length - 1].Date : undefined;
 //   const todayDate = forecast.length > 0 ? forecast[0].date : undefined;
 
-    const todayDate = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+    // const todayDate = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+    const todayDate = new Date().toLocaleDateString("en-CA");
 
     if (loading) return <LoadingSpinner text="Loading energy forecast..."/>;
 

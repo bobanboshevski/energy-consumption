@@ -15,6 +15,7 @@ import pandas as pd
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import joblib
+from onnx_exporter import export_and_quantize
 
 load_dotenv()
 
@@ -226,5 +227,24 @@ with mlflow.start_run(run_name="train_energy_demand_univariate"):
         print("Univariate model registered in MLflow!")
     except Exception as e:
         print(f"WARNING: Could not register model: {e}")
+
+    # ─────────────────────────────────────────────
+    # Export to ONNX (base + quantized)
+    # ─────────────────────────────────────────────
+    input_shape = (X_full.shape[1], X_full.shape[2])
+
+    onnx_artefacts = export_and_quantize(
+        model=model,
+        input_shape=input_shape,
+        output_dir="models",
+        model_name="model_energy_demand_univariate",
+    )
+
+    for artifact_path in onnx_artefacts.values():
+        try:
+            mlflow.log_artifact(artifact_path)
+            print(f"ONNX artifact logged to MLflow: {artifact_path}")
+        except Exception as e:
+            print(f"WARNING: Could not log ONNX artifact {artifact_path} to MLflow: {e}")
 
     print("Univariate model and pipeline saved.")

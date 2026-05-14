@@ -8,13 +8,24 @@ function dayLabel(dateStr: string) {
 
 export function ForecastCards({forecast}: { forecast: ForecastPoint[] }) {
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    // const todayStr = new Date().toISOString().split("T")[0];
+    //
+    // const todayIndex = forecast.findIndex(f => f.date === todayStr);
+    // const startIndex = todayIndex === -1 ? 0 : todayIndex;
+    // const next3 = forecast.slice(startIndex, startIndex + 3);
+
+    // const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = new Date().toLocaleDateString("en-CA");
 
     const todayIndex = forecast.findIndex(f => f.date === todayStr);
-    const startIndex = todayIndex === -1 ? 0 : todayIndex;
+    const todayExists = todayIndex !== -1;
+    const startIndex = todayExists ? todayIndex : 0;
     const next3 = forecast.slice(startIndex, startIndex + 3);
 
-    // const next3 = forecast.slice(0, 3);
+    // If today exists in the array: first card = "Today", second = "Tomorrow"
+    // If today is missing (data lag): first card = "Tomorrow", second = nothing
+    const badges = todayExists ? ["Today", "Tomorrow", null] : ["Tomorrow", null, null];
+
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -25,17 +36,14 @@ export function ForecastCards({forecast}: { forecast: ForecastPoint[] }) {
                         idx === 0 ? "border-blue-600" : "border-gray-800"
                     }`}
                 >
-                    {idx === 0 && (
-                        <span
-                            className="absolute top-3 right-3 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">
-              Today
-            </span>
-                    )}
-                    {idx === 1 && (
-                        <span
-                            className="absolute top-3 right-3 text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-medium">
-                Tomorrow
-            </span>
+                    {badges[idx] && (
+                        <span className={`absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full font-medium ${
+                            badges[idx] === "Today"
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-700 text-gray-300"
+                        }`}>
+                            {badges[idx]}
+                        </span>
                     )}
                     <p className="text-xs text-gray-500 font-medium mb-3">{dayLabel(f.date)}</p>
                     <p className="text-4xl font-bold font-mono text-white mb-1">

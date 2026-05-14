@@ -293,7 +293,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
             window_size=window_size,
             output_dir="models",
         )
-        mlflow.log_artifact(predictions_path)  # todo: check this
+        mlflow.log_artifact(predictions_path)
         print("Forecast predictions artifact logged to MLflow.")
     except Exception as e:
         print(f"WARNING: Could not generate forecast artifact: {e}")

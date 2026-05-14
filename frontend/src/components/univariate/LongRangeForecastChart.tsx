@@ -23,7 +23,7 @@ function addMonths(date: Date, months: number): Date {
 }
 
 function toDateStr(d: Date): string {
-    return d.toISOString().split("T")[0];
+    return d.toLocaleDateString("en-CA");
 }
 
 function formatDate(d: string) {
