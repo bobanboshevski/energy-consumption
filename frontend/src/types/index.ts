@@ -119,3 +119,24 @@ interface ActiveState {
     multivariate: ActiveModelInfo;
     univariate: ActiveModelInfo;
 }
+
+export interface BackendPerformancePoint {
+    date: string;
+    actual: number;
+    predicted: number;
+    error: number;
+}
+
+export interface BackendVariantResult {
+    available: boolean;
+    variant?: "quantized" | "base";
+    performance: BackendPerformancePoint[];
+    metrics: Metrics;
+}
+
+export interface BackendComparison {
+    model_key: string;
+    window_days: number;
+    onnx: BackendVariantResult;
+    keras: BackendVariantResult;
+}

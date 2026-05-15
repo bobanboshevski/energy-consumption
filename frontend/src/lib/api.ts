@@ -2,7 +2,7 @@ import axios from "axios";
 import type {
     ForecastPoint, HistoricalPoint, PerformancePoint,
     Metrics, DriftReport, RegisteredModel, ExperimentRun, UnivariateModelInfo, UnivariatePrediction,
-    UnivariateRangePoint
+    UnivariateRangePoint, BackendComparison
 } from "@/types";
 
 const api = axios.create({
@@ -44,6 +44,11 @@ export const monitoringApi = {
     getGx: () => api.get<DriftReport>("/monitoring/gx"),
     getGxReportUrl: () =>
         `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"}/monitoring/gx/report`,
+
+    getComparison: (windowDays = 30, modelKey: "multivariate" | "univariate" = "multivariate") =>
+        api.get<BackendComparison>(
+            `/monitoring/comparison?window_days=${windowDays}&model_key=${modelKey}`
+        ),
 };
 
 export const modelsApi = {

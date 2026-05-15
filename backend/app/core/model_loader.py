@@ -15,8 +15,7 @@ from app.core.activate_model import (
 )
 from app.core.config import settings
 
-_SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
-sys.path.insert(0, str(_SHARED_DIR))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 _model = None
 _pipeline = None
@@ -58,29 +57,6 @@ def _load_pipeline_from_mlflow(model_name: str, version: str, artifact_filename:
         return joblib.load(local_path)
 
 
-# ── Multivariate ──────────────────────────────────────────────────────────────
-
-# def load_model():
-#     global _model
-#     if _model is not None:
-#         return _model
-#
-#     version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
-#     print(f"Loading multivariate model with version {version}")
-#
-#     try:
-#         _setup_mlflow()
-#         _model = mlflow.tensorflow.load_model(f"models:/{settings.MLFLOW_MODEL_NAME}/{version}")
-#         print(f"Multivariate model loaded from MLflow (v{version})")
-#     except Exception as e:
-#         print(f"WARNING: MLflow load failed ({e}). Falling back to local file.")
-#         _model = keras.models.load_model(settings.MODEL_PATH)
-#         version = "local"
-#
-#     set_loaded_version(version, MODEL_MULTIVARIATE)
-#     return _model
-
-
 def load_model():
     global _model
 
@@ -95,7 +71,8 @@ def load_model():
         _setup_mlflow()
         client = mlflow.tracking.MlflowClient()
         run_id = client.get_model_version(settings.MLFLOW_MODEL_NAME, version).run_id
-        onnx_loaded = onnx_runner.load_onnx_session(run_id, version)
+        onnx_loaded = onnx_runner.load_onnx_session(run_id, version, model_key=MODEL_MULTIVARIATE,
+                                                    prefer_quantized=True)
     except Exception as e:
         print(f"[ONNX] ⚠  Could not attempt ONNX load: {e}")
         onnx_loaded = False
@@ -166,13 +143,36 @@ def load_univariate_model():
 
     try:
         _setup_mlflow()
+        client = mlflow.tracking.MlflowClient()
+        run_id = client.get_model_version(settings.MLFLOW_UNIVARIATE_MODEL_NAME, version).run_id
+        onnx_loaded = onnx_runner.load_onnx_session(run_id, version, model_key=MODEL_UNIVARIATE, prefer_quantized=True)
+
+        # _univariate_model = mlflow.tensorflow.load_model(
+        #     f"models:/{settings.MLFLOW_UNIVARIATE_MODEL_NAME}/{version}"
+        # )
+        print(f"Univariate model loaded from MLflow (v{version})")
+    except Exception as e:
+        print(f"[ONNX:univariate] ⚠  Could not attempt ONNX load: {e}")
+        onnx_loaded = False
+
+    if onnx_loaded:
+        set_loaded_version(version, MODEL_UNIVARIATE)
+        print(f"[MODEL] ✓  Using ONNX Runtime for univariate inference (v{version})")
+        return None
+
+    # Fall back to Keras
+    try:
+        _setup_mlflow()
         _univariate_model = mlflow.tensorflow.load_model(
             f"models:/{settings.MLFLOW_UNIVARIATE_MODEL_NAME}/{version}"
         )
         print(f"Univariate model loaded from MLflow (v{version})")
+
     except Exception as e:
         print(f"WARNING: MLflow univariate load failed ({e}). Falling back to local.")
-        _univariate_model = keras.models.load_model(settings.UNIVARIATE_MODEL_PATH)
+        _univariate_model = keras.models.load_model(
+            settings.UNIVARIATE_MODEL_PATH)  # todo: this in production cannot be satisfied, since i build the backend independently
+        # todo: from the /machine-learning directory ! ! !
         version = "local"
 
     set_loaded_version(version, MODEL_UNIVARIATE)
@@ -196,6 +196,20 @@ def load_univariate_pipeline():
         _univariate_pipeline = joblib.load(settings.UNIVARIATE_PIPELINE_PATH)
 
     return _univariate_pipeline
+
+
+def predict_univariate(X: np.ndarray) -> np.ndarray:
+    """
+    Unified inference for the univariate model.
+    Uses ONNX Runtime if loaded, otherwise Keras.
+
+    X shape: (1, window_size, 1)
+    Returns: (1, 1)
+    """
+    if onnx_runner.is_loaded("univariate"):
+        return onnx_runner.predict(X, model_key="univariate")
+    model = load_univariate_model()
+    return model.predict(X, verbose=0)
 
 
 # ── Utilities ─────────────────────────────────────────────────────────────────

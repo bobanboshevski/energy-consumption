@@ -1,0 +1,17 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: energy-forecast-backend
+    ports:
+      - "8002:8002"
+    tmpfs:
+      - /tmp:exec,mode=1777
+    environment:
+      - TMPDIR=/tmp
+    restart: unless-stopped
+
+networks:
+  default:
+    name: energy-forecast-network

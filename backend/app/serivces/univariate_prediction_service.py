@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 
 from app.core.config import settings
 from app.core.data_service import get_data
-from app.core.model_loader import load_univariate_model, load_univariate_pipeline
+from app.core.model_loader import load_univariate_model, load_univariate_pipeline, predict_univariate
 
 
 def predict_for_date(target_date: date) -> dict:
@@ -130,7 +130,7 @@ def predict_range(start_date: date, end_date: date) -> list:
             f"Requested end date {end_date} is {days_ahead} days away."
         )
 
-    model = load_univariate_model()
+    load_univariate_model()  # ensures ONNX or Keras is loaded
     pipeline = load_univariate_pipeline()
 
     df = get_data()
@@ -150,7 +150,7 @@ def predict_range(start_date: date, end_date: date) -> list:
 
     while current_date < end_date:
         X = window.reshape(1, settings.UNIVARIATE_WINDOW_SIZE, 1)
-        pred_scaled = model.predict(X, verbose=0)
+        pred_scaled = predict_univariate(X.astype(np.float32))
         window = np.vstack([window[1:], pred_scaled[0].reshape(1, 1)])
 
         current_date += timedelta(days=1)

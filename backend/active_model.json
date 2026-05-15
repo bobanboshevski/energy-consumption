@@ -1,10 +1,10 @@
 {
   "multivariate": {
-    "active_version": "37",
-    "loaded_version": "37"
+    "active_version": "latest",
+    "loaded_version": "40"
   },
   "univariate": {
-    "active_version": "13",
-    "loaded_version": "13"
+    "active_version": "28",
+    "loaded_version": "28"
   }
 }
