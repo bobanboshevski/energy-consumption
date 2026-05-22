@@ -64,16 +64,16 @@ stages:
     deps:
     - path: data/raw/energy_demand/energy_demand.json
       hash: md5
-      md5: c6ce134c736a8b9e5f3e681084b1a42e
-      size: 262791
+      md5: 4d463dad041b6e83cb75720582ec29cb
+      size: 263023
     - path: data/raw/weather/forecast/weather_forecast.json
       hash: md5
-      md5: 4968be64730253b8156d7b7d9a426e13
-      size: 1908
+      md5: e87345d29b4177089ab9182f34b187c3
+      size: 1909
     - path: data/raw/weather/history/weather_history.json
       hash: md5
-      md5: 7f2abeac18da5e0d7de39f4c9918cfab
-      size: 194742
+      md5: 6843c5ebeeb2d5f0f20118a7506370e0
+      size: 194825
     - path: src/data/preprocess/merge_datasets.py
       hash: md5
       md5: 4f8d54bb8ced61a197a7ee7484d67bce
@@ -84,22 +84,22 @@ stages:
     outs:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: 5fc158fe63258c2894b054312a053a43
-      size: 119373
+      md5: 3a59c4b40a70b10d1cecde1ef11be988
+      size: 119449
   validate:
     cmd: "cd gx && uv run python run_checkpoint.py\n"
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: 5fc158fe63258c2894b054312a053a43
-      size: 119373
+      md5: 3a59c4b40a70b10d1cecde1ef11be988
+      size: 119449
   test_data:
     cmd: "uv run python src/data/test/test_data.py\n"
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: 5fc158fe63258c2894b054312a053a43
-      size: 119373
+      md5: 3a59c4b40a70b10d1cecde1ef11be988
+      size: 119449
     - path: src/data/test/test_data.py
       hash: md5
       md5: a93f9fafa893260e900b056f393825a2
@@ -107,8 +107,8 @@ stages:
     outs:
     - path: data/reference
       hash: md5
-      md5: 7b5c0bcedbd2be7a7ab5f685bfa285ad.dir
-      size: 119083
+      md5: b594965d1f78af23d4dafeff74c054fa.dir
+      size: 119152
       nfiles: 1
   train:
     cmd: "uv run python src/models/train.py\ngit commit -am \"Updated model on `date`
