@@ -74,7 +74,7 @@ def predict_for_date(target_date: date) -> dict:
 
     while current_date < target_date:
         X = window.reshape(1, settings.UNIVARIATE_WINDOW_SIZE, 1)
-        pred_scaled = model.predict(X, verbose=0)
+        pred_scaled = predict_univariate(X)
 
         # Slide window forward
         window = np.vstack([window[1:], pred_scaled[0].reshape(1, 1)])

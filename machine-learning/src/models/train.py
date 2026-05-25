@@ -15,6 +15,7 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from multivariate_forecast_generator import generate_and_log_forecast
 from onnx_exporter import export_and_quantize
+from shap_explainer import generate_shap_explanations
 
 # todo: this needs to be checked if it works properly in both /backend and /machine-learning
 # from shared.preprocess import DatePreprocessor, SlidingWindowTransformer
@@ -284,7 +285,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
     # full dataset for prediction generation
     try:
         df_with_forecast = pd.read_csv(data_path)
-        generate_and_log_forecast(
+        forecast_artifact = generate_and_log_forecast(
             model=model,
             pipeline=pipeline,
             df_full=df_with_forecast,
@@ -297,5 +298,28 @@ with mlflow.start_run(run_name="train_energy_demand"):
         print("Forecast predictions artifact logged to MLflow.")
     except Exception as e:
         print(f"WARNING: Could not generate forecast artifact: {e}")
+
+    # ─────────────────────────────────────────────
+    # Generate SHAP explanations (Keras + ONNX + ONNX quantized)
+    # ─────────────────────────────────────────────
+    try:
+        shap_artifacts = generate_shap_explanations(
+            model=model,
+            pipeline=pipeline,
+            df_full=pd.read_csv(data_path),
+            target_col=target_col,
+            feature_cols=feature_cols,
+            window_size=window_size,
+            forecast_artifact=forecast_artifact,  # returned by generate_and_log_forecast
+            onnx_paths=onnx_artefacts,  # returned by export_and_quantize
+            output_dir="models",
+            n_background_samples=50,
+            kernel_nsamples=100,
+        )
+        for variant, artifact_path in shap_artifacts.items():
+            mlflow.log_artifact(artifact_path)
+            print(f"SHAP artifact logged to MLflow: {artifact_path}")
+    except Exception as e:
+        print(f"WARNING: SHAP explanation generation failed: {e}")
 
     print("Model and pipeline saved to models/")
