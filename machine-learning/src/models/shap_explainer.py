@@ -214,14 +214,14 @@ def _explain_keras(
         n_forecast = len(forecast_dates)
         print(f"[SHAP:Keras] GradientExplainer - {n_forecast} dates, background: {background.shape}")
 
-        explainer = shap.GradientExplainer(model, background.astype(np.float32)),
+        explainer = shap.GradientExplainer(model, background.astype(np.float32))
 
         # TODO: is base_value array after this?
         # Compute base value: average prediction over background
         base_value = float(np.mean(model.predict(background.astype(np.float32))))
 
         # Explain all forecast windows in one cell
-        shap_vals = explainer.shap_explainer(forecast_windows.astype(np.float32))
+        shap_vals = explainer.shap_values(forecast_windows.astype(np.float32))
 
         # GradientExplainer returns list[array] for multi-output, or array for single output
         if isinstance(shap_vals, list):
