@@ -55,7 +55,7 @@ stages:
     outs:
     - path: data/raw/weather/forecast/weather_forecast.json
       hash: md5
-      md5: 7900c0b77dd64f6fa6cffb6cb5e61d32
+      md5: ea8781dd8923a046677ad1d8a1baf983
       size: 1910
   preprocess:
     cmd: "uv run python -m src.data.preprocess.merge_datasets\ngit commit -am \"Updated
