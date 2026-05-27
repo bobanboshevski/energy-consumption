@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.core.data_service import invalidate_cache
-from app.serivces.prediction_service import get_forecast_data, get_historical_data
+from app.services.prediction_service import get_forecast_data, get_historical_data
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
 

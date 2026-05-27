@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from fastapi import APIRouter, HTTPException, Query
 
 # from app.services.univariate_prediction_service import predict_for_date, predict_range
-from app.serivces.univariate_prediction_service import predict_for_date, predict_range
+from app.services.univariate_prediction_service import predict_for_date, predict_range
 from app.core.config import settings
 
 router = APIRouter(prefix="/univariate", tags=["univariate"])

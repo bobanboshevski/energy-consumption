@@ -1,7 +1,7 @@
 from starlette.responses import HTMLResponse
 
 from app.core.data_service import get_drift_report_html, get_gx_report_html
-from app.serivces.monitoring_service import get_model_performance_over_time, get_drift_report_summary, \
+from app.services.monitoring_service import get_model_performance_over_time, get_drift_report_summary, \
     get_current_metrics, get_univariate_performance_over_time, get_univariate_metrics, get_gx_report_summary, \
     get_backend_comparison
 from fastapi import APIRouter

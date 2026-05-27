@@ -7,7 +7,7 @@ import numpy as np
 
 from app.core.data_service import get_data, get_drift_report_html, get_gx_report_html
 from app.core.model_loader import load_model, load_pipeline, load_univariate_model, load_univariate_pipeline, \
-    predict_multivariate, _resolve_version, _setup_mlflow, predict_univariate
+    predict_multivariate, resolve_version, _setup_mlflow, predict_univariate
 
 
 # ── Multivariate model monitoring ─────────────────────────────────────────────
@@ -247,10 +247,10 @@ def _load_keras_for_comparison(model_key: str):
     _setup_mlflow()
 
     if model_key == "multivariate":
-        version = _resolve_version("multivariate", settings.MLFLOW_MODEL_NAME)
+        version = resolve_version("multivariate", settings.MLFLOW_MODEL_NAME)
         uri = f"models:/{settings.MLFLOW_MODEL_NAME}/{version}"
     else:
-        version = _resolve_version("univariate", settings.MLFLOW_UNIVARIATE_MODEL_NAME)
+        version = resolve_version("univariate", settings.MLFLOW_UNIVARIATE_MODEL_NAME)
         uri = f"models:/{settings.MLFLOW_UNIVARIATE_MODEL_NAME}/{version}"
 
     try:

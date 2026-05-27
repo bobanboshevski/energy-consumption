@@ -12,13 +12,15 @@ import {Card, CardHeader} from "@/components/ui/Card";
 import {LoadingSpinner} from "@/components/ui/LoadingSpinner";
 import {GxStatus} from "@/components/admin/GxStatus";
 import {ComparisonChart} from "@/components/admin/ComparisonChart";
+import {ExplainabilityPanel} from "@/components/admin/explainability/ExplainabilityPanel";
 
-type Tab = "monitoring" | "models" | "experiments";
+type Tab = "monitoring" | "models" | "experiments" | "explainability";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
     {id: "monitoring", label: "Monitoring", icon: "📊"},
     {id: "models", label: "Models", icon: "🤖"},
     {id: "experiments", label: "Experiments", icon: "🧪"},
+    {id: "explainability", label: "Explainability", icon: "🔍"},
 ];
 
 export default function AdminPage() {
@@ -204,6 +206,19 @@ export default function AdminPage() {
                     </Card>
                 </div>
             )}
+
+            {tab === "explainability" && (
+                <Card>
+                    <CardHeader
+                        title="Model Explainability"
+                        subtitle="SHAP feature attribution for multivariate model forecast predictions"
+                    />
+                    <div className="px-6 pb-6">
+                        <ExplainabilityPanel/>
+                    </div>
+                </Card>
+            )}
+
         </div>
     );
 }

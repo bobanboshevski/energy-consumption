@@ -23,7 +23,7 @@ Each artifact contains:
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable
 
 import numpy as np
 import pandas as pd
@@ -73,15 +73,14 @@ def _build_background(
 # ── Forecast window reconstruction ───────────────────────────────────────────
 
 def _reconstruct_forecast_windows(
-        model,
+        predict_fn: Callable[[np.ndarray], np.ndarray],
         scaled_history: np.ndarray,
         forecast_df: pd.DataFrame,
         feature_cols: list[str],
-        target_col: str,
         window_size: int,
         n_features: int,
         feature_scaler,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Replays the autoregressive forecast loop to capture the exact input window
     that was used for each forecast prediction.
@@ -99,16 +98,20 @@ def _reconstruct_forecast_windows(
 
     current_window = scaled_history[-window_size:].copy()
     forecast_windows = []
+    scaled_target_preds = []
 
     for i in range(len(forecast_df)):
         forecast_windows.append(current_window.copy())
 
         X = current_window.reshape(1, window_size, n_features).astype(np.float32)
-        pred_scaled = model.predict(X, verbose=0)
+        pred_scaled = predict_fn(X)  # (1, 1)
+        scaled_target_preds.append(pred_scaled[0])  # (1,)
+
         new_row = np.concatenate([pred_scaled[0], forecast_features_scaled[i]])
         current_window = np.vstack([current_window[1:], new_row])
 
-    return np.stack(forecast_windows)  # (n_forecast, window_size, n_features)
+    # (n_forecast, window_size, n_features)
+    return np.stack(forecast_windows), np.array(scaled_target_preds)
 
 
 # ── SHAP aggregation helpers ──────────────────────────────────────────────────
@@ -142,7 +145,7 @@ def _aggregate_shap_matrix(
 
 def _build_explanation_record(
         date: str,
-        predicted_demand: float,
+        predicted_demand_gw: float,
         base_value: float,
         shap_matrix: np.ndarray,
         feature_names: list[str],
@@ -151,7 +154,7 @@ def _build_explanation_record(
     feature_importance, timestep_importance = _aggregate_shap_matrix(shap_matrix, feature_names)
     return {
         "date": date,
-        "predicted_demand": round(predicted_demand, 4),
+        "predicted_demand": round(predicted_demand_gw, 4),
         "base_value": round(base_value, 4),  # todo: how is this calculated?
         "feature_importance": feature_importance,
         "timestep_importance": timestep_importance,
@@ -194,11 +197,15 @@ def _save_shap_artefact(
 def _explain_keras(
         model,
         background: np.ndarray,
-        forecast_windows: np.ndarray,
+        scaled_history: np.ndarray,
+        forecast_df: pd.DataFrame,
         forecast_dates: list[str],
-        forecast_predictions: list[float],
+        feature_cols: list[str],
         feature_names: list[str],
         window_size: int,
+        n_features: int,
+        feature_scaler,
+        target_scaler,
         output_dir: str,
 ) -> Optional[str]:
     """
@@ -211,30 +218,49 @@ def _explain_keras(
     try:
         import shap
 
-        n_forecast = len(forecast_dates)
-        print(f"[SHAP:Keras] GradientExplainer - {n_forecast} dates, background: {background.shape}")
+        keras_predict_fn = lambda X: model.predict(X, verbose=0)
+
+        # Reconstruct windows and get Keras' own scaled predictions
+        forecast_windows, scaled_preds = _reconstruct_forecast_windows(
+            predict_fn=keras_predict_fn,
+            scaled_history=scaled_history,
+            forecast_df=forecast_df,
+            feature_cols=feature_cols,
+            window_size=window_size,
+            n_features=n_features,
+            feature_scaler=feature_scaler,
+        )
+
+        # Inverse transform: scaled → GW (Keras' own predictions)
+        forecast_preds_gw = [
+            round(float(target_scaler.inverse_transform([[float(p[0])]])[0][0]), 4)
+            for p in scaled_preds
+        ]
+
+        print(f"[SHAP:Keras] GradientExplainer — {len(forecast_dates)} dates, "
+              f"background: {background.shape}")
 
         explainer = shap.GradientExplainer(model, background.astype(np.float32))
+        base_value = float(np.mean(model.predict(background.astype(np.float32), verbose=0)))
 
-        # TODO: is base_value array after this?
-        # Compute base value: average prediction over background
-        base_value = float(np.mean(model.predict(background.astype(np.float32))))
-
-        # Explain all forecast windows in one cell
         shap_vals = explainer.shap_values(forecast_windows.astype(np.float32))
-
-        # GradientExplainer returns list[array] for multi-output, or array for single output
         if isinstance(shap_vals, list):
-            shap_arr = np.array(shap_vals[0])  # (n_forecast, window_size, n_features)
+            shap_arr = np.array(shap_vals[0])
         else:
             shap_arr = np.array(shap_vals)
 
+        # Squeeze trailing dim of size 1 if GradientExplainer adds it
+        # (TF wraps single-output predictions in an extra dimension)
+        if shap_arr.ndim == 4:
+            # (n_forecast, window_size, n_features, 1) → (n_forecast, window_size, n_features)
+            shap_arr = shap_arr.squeeze(-1)
+
         explanations = []
-        for i, (date, pred) in enumerate(zip(forecast_dates, forecast_predictions)):
-            shap_matrix = shap_arr[i]  # (window_size, n_features)
-            record = _build_explanation_record(date, pred, base_value, shap_matrix, feature_names)
+        for i, (date, pred_gw) in enumerate(zip(forecast_dates, forecast_preds_gw)):
+            shap_matrix = shap_arr[i]
+            record = _build_explanation_record(date, pred_gw, base_value, shap_matrix, feature_names)
             top_feat = max(record["feature_importance"], key=record["feature_importance"].get)
-            print(f"[SHAP:Keras] {date} → top feature: {top_feat} ({record['feature_importance'][top_feat]:.4f})")
+            print(f"[SHAP:Keras] {date} → {pred_gw:.4f} GW, top feature: {top_feat}")
             explanations.append(record)
 
         return _save_shap_artefact(
@@ -247,22 +273,26 @@ def _explain_keras(
             output_dir=output_dir,
             artifact_name="shap_explanations_keras.json",
         )
+
     except Exception as e:
         print(f"[SHAP:Keras] GradientExplainer failed: {e}")
         return None
 
-        # ── Variant 2 & 3: ONNX KernelExplainer ──────────────────────────────────────
 
+# ── Variant 2 & 3: ONNX KernelExplainer ──────────────────────────────────────
 
 def _explain_onnx(
         onnx_path: str,
         background: np.ndarray,
-        forecast_windows: np.ndarray,
+        scaled_history: np.ndarray,
+        forecast_df: pd.DataFrame,
         forecast_dates: list[str],
-        forecast_predictions: list[float],
+        feature_cols: list[str],
         feature_names: list[str],
         window_size: int,
         n_features: int,
+        feature_scaler,
+        target_scaler,
         output_dir: str,
         artifact_name: str,
         model_variant: str,
@@ -286,7 +316,7 @@ def _explain_onnx(
         import shap
         import onnxruntime as rt
 
-        print(f"SHAP:ONNX] Loading: {Path(onnx_path).name}")
+        print(f"[SHAP:ONNX] Loading: {Path(onnx_path).name}")
         sess_opts = rt.SessionOptions()
         sess_opts.graph_optimization_level = rt.GraphOptimizationLevel.ORT_ENABLE_ALL
         session = rt.InferenceSession(
@@ -296,37 +326,55 @@ def _explain_onnx(
         )
         input_name = session.get_inputs()[0].name
 
-        def predict_fn(X_flat: np.ndarray) -> np.ndarray:
-            """Flat 2D (n, window × features) → prediction (n,)"""
+        # Autoregressive predict_fn: used both for window reconstruction and KernelExplainer
+        def onnx_predict_3d(X: np.ndarray) -> np.ndarray:
+            """(1, window_size, n_features) → (1, 1)"""
+            return session.run(None, {input_name: X.astype(np.float32)})[0]
+
+        def onnx_predict_flat(X_flat: np.ndarray) -> np.ndarray:
+            """Flat 2D (n, window × features) → prediction (n,) — for KernelExplainer."""
             X_3d = X_flat.reshape(-1, window_size, n_features).astype(np.float32)
             return session.run(None, {input_name: X_3d})[0].flatten()
 
-        # Flatten 3D → 2D for KernelExplainer
-        n_flat = window_size * n_features
-        background_flat = background.reshape(background.shape[0], n_flat)
-        forecast_flat = forecast_windows.reshape(forecast_windows.shape[0], n_flat)
+        # Reconstruct windows using THIS ONNX variant's own inference
+        forecast_windows, scaled_preds = _reconstruct_forecast_windows(
+            predict_fn=onnx_predict_3d,
+            scaled_history=scaled_history,
+            forecast_df=forecast_df,
+            feature_cols=feature_cols,
+            window_size=window_size,
+            n_features=n_features,
+            feature_scaler=feature_scaler,
+        )
 
-        base_value = float(np.mean(predict_fn(background_flat)))
-        print(f"[SHAP:ONNX] KernelExplainer — background: {background_flat.shape}, nsamples={nsamples}")
+        # Inverse transform: scaled → GW (this ONNX variant's own predictions)
+        forecast_preds_gw = [
+            round(float(target_scaler.inverse_transform([[float(p[0])]])[0][0]), 4)
+            for p in scaled_preds
+        ]
 
-        explainer = shap.KernelExplainer(predict_fn, background_flat)
+        # Flatten for KernelExplainer
+        background_flat = background.reshape(background.shape[0], -1)
+        forecast_flat = forecast_windows.reshape(forecast_windows.shape[0], -1)
 
-        # Explain all forecast points in one call
+        base_value = float(np.mean(onnx_predict_flat(background_flat)))
+        print(f"[SHAP:ONNX] KernelExplainer — background: {background_flat.shape}, "
+              f"nsamples={nsamples}")
+
+        explainer = shap.KernelExplainer(onnx_predict_flat, background_flat)
         shap_vals = explainer.shap_values(forecast_flat, nsamples=nsamples, silent=True)
 
-        # KernelExplainer returns list for multi-output or array for single output
         if isinstance(shap_vals, list):
-            shap_arr = np.array(shap_vals[0])  # (n_forecast, n_flat)
+            shap_arr = np.array(shap_vals[0])
         else:
             shap_arr = np.array(shap_vals)
 
         explanations = []
-        for i, (date, pred) in enumerate(zip(forecast_dates, forecast_predictions)):
+        for i, (date, pred_gw) in enumerate(zip(forecast_dates, forecast_preds_gw)):
             shap_matrix = shap_arr[i].reshape(window_size, n_features)
-            record = _build_explanation_record(date, pred, base_value, shap_matrix, feature_names)
+            record = _build_explanation_record(date, pred_gw, base_value, shap_matrix, feature_names)
             top_feat = max(record["feature_importance"], key=record["feature_importance"].get)
-            print(f"[SHAP:ONNX] {date} → top feature: {top_feat} "
-                  f"({record['feature_importance'][top_feat]:.4f})")
+            print(f"[SHAP:ONNX] {date} → {pred_gw:.4f} GW, top feature: {top_feat}")
             explanations.append(record)
 
         return _save_shap_artefact(
@@ -353,7 +401,6 @@ def generate_shap_explanations(
         target_col: str,
         feature_cols: list[str],
         window_size: int,
-        forecast_artifact: dict,
         onnx_paths: dict,
         output_dir: str = "models",
         n_background_samples: int = 50,
@@ -362,66 +409,55 @@ def generate_shap_explanations(
     """
     Generates SHAP explanations for all available model variants.
 
-    This is the only function called from train.py. It handles all three
-    variants (Keras, ONNX, ONNX quantized) and returns a dict mapping
-    variant name to artifact path.
+    Each variant independently:
+    1. Replays the autoregressive forecast loop with its own inference
+    2. Records its own predicted_demand values (in GW)
+    3. Computes SHAP values explaining its own outputs
+
+    This means predicted_demand will differ slightly between variants,
+    correctly reflecting each model's actual output rather than sharing
+    the Keras model's predictions.
+
+    Note: forecast_artifact is no longer accepted — forecast dates and
+    per-variant predictions are computed directly from df_full.
 
     Args:
-        model:                Trained Keras model (used directly + for Keras SHAP)
+        model:                Trained Keras model
         pipeline:             Fitted sklearn pipeline (for scaling)
         df_full:              Complete dataset including forecast rows
         target_col:           Target column name
         feature_cols:         Feature column names
         window_size:          LSTM context window size
-        forecast_artifact:    Output from generate_and_log_forecast
         onnx_paths:           Dict: {'onnx': path, 'onnx_quantized': path}
         output_dir:           Directory to write JSON artifacts
-        n_background_samples: SHAP background sample count (50 is fast, 100 is more accurate)
-        kernel_nsamples:      KernelExplainer perturbation samples (higher = slower but more accurate)
-
-    Returns:
-        Dict mapping variant name to saved artifact path.
-        e.g. {'keras': 'models/shap_explanations_keras.json', 'onnx': '...'}
+        n_background_samples: SHAP background sample count
+        kernel_nsamples:      KernelExplainer perturbation samples
     """
-    if not forecast_artifact or not forecast_artifact.get("predictions"):
-        print("[SHAP] No forecast predictions available — skipping SHAP generation.")
-        return {}
-
     feature_names = [target_col] + feature_cols
     n_features = len(feature_names)
 
-    # ── Prepare scaled history ────────────────────────────────────────────────
+    # ── Prepare shared data structures ────────────────────────────────────────
     df = df_full.sort_values("Date").reset_index(drop=True)
     history = df[df[target_col].notna()].copy()
     forecast_df = df[df[target_col].isna()].copy().reset_index(drop=True)
 
+    if forecast_df.empty:
+        print("[SHAP] No forecast rows found — skipping SHAP generation.")
+        return {}
+
+    forecast_dates = forecast_df["Date"].astype(str).tolist()
+
     preprocess_step = pipeline.named_steps["preprocess"]
     scaled_history = preprocess_step.transform(history[[target_col] + feature_cols])
     feature_scaler = preprocess_step.transformers_[1][1].named_steps["normalize"]
+    target_scaler = preprocess_step.transformers_[0][1].named_steps["normalize"]
 
-    # ── Build SHAP background ─────────────────────────────────────────────────
-    background = _build_background(
-        scaled_history, window_size, n_background_samples
-    )
+    # ── Shared SHAP background (same for all variants) ────────────────────────
+    background = _build_background(scaled_history, window_size, n_background_samples)
 
-    # ── Reconstruct exact forecast windows ────────────────────────────────────
-    forecast_windows = _reconstruct_forecast_windows(
-        model=model,
-        scaled_history=scaled_history,
-        forecast_df=forecast_df,
-        feature_cols=feature_cols,
-        target_col=target_col,
-        window_size=window_size,
-        n_features=n_features,
-        feature_scaler=feature_scaler,
-    )
-
-    forecast_dates = [p["date"] for p in forecast_artifact["predictions"]]
-    forecast_preds = [p["predicted_demand"] for p in forecast_artifact["predictions"]]
-
-    print(f"[SHAP] Starting explanations — {len(forecast_dates)} forecast dates "
-          f"({forecast_dates[0]} → {forecast_dates[-1]})")
-    print(f"[SHAP] Background: {background.shape}, Forecast windows: {forecast_windows.shape}")
+    print(f"[SHAP] {len(forecast_dates)} forecast dates: "
+          f"{forecast_dates[0]} → {forecast_dates[-1]}")
+    print(f"[SHAP] Background: {background.shape}")
 
     artifacts = {}
 
@@ -429,11 +465,15 @@ def generate_shap_explanations(
     path = _explain_keras(
         model=model,
         background=background,
-        forecast_windows=forecast_windows,
+        scaled_history=scaled_history,
+        forecast_df=forecast_df,
         forecast_dates=forecast_dates,
-        forecast_predictions=forecast_preds,
+        feature_cols=feature_cols,
         feature_names=feature_names,
         window_size=window_size,
+        n_features=n_features,
+        feature_scaler=feature_scaler,
+        target_scaler=target_scaler,
         output_dir=output_dir,
     )
     if path:
@@ -444,12 +484,15 @@ def generate_shap_explanations(
         path = _explain_onnx(
             onnx_path=onnx_paths["onnx"],
             background=background,
-            forecast_windows=forecast_windows,
+            scaled_history=scaled_history,
+            forecast_df=forecast_df,
             forecast_dates=forecast_dates,
-            forecast_predictions=forecast_preds,
+            feature_cols=feature_cols,
             feature_names=feature_names,
             window_size=window_size,
             n_features=n_features,
+            feature_scaler=feature_scaler,
+            target_scaler=target_scaler,
             output_dir=output_dir,
             artifact_name="shap_explanations_onnx.json",
             model_variant="onnx",
@@ -463,12 +506,15 @@ def generate_shap_explanations(
         path = _explain_onnx(
             onnx_path=onnx_paths["onnx_quantized"],
             background=background,
-            forecast_windows=forecast_windows,
+            scaled_history=scaled_history,
+            forecast_df=forecast_df,
             forecast_dates=forecast_dates,
-            forecast_predictions=forecast_preds,
+            feature_cols=feature_cols,
             feature_names=feature_names,
             window_size=window_size,
             n_features=n_features,
+            feature_scaler=feature_scaler,
+            target_scaler=target_scaler,
             output_dir=output_dir,
             artifact_name="shap_explanations_onnx_quantized.json",
             model_variant="onnx_quantized",

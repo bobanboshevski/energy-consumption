@@ -29,7 +29,7 @@ def _setup_mlflow():
     mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 
 
-def _resolve_version(model_key: str, model_name: str) -> str:
+def resolve_version(model_key: str, model_name: str) -> str:
     active = get_active_version(model_key)
     if active != "latest":
         return active
@@ -63,7 +63,7 @@ def load_model():
     if _model is not None or onnx_runner.is_loaded():
         return _model  # None is fine if ONNX session is loaded
 
-    version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
+    version = resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
     print(f"Loading multivariate model with version {version}")
 
     # Try ONNX first
@@ -118,7 +118,7 @@ def load_pipeline():
     if _pipeline is not None:
         return _pipeline
 
-    version = _resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
+    version = resolve_version(MODEL_MULTIVARIATE, settings.MLFLOW_MODEL_NAME)
 
     try:
         _pipeline = _load_pipeline_from_mlflow(
@@ -139,7 +139,7 @@ def load_univariate_model():
     if _univariate_model is not None:
         return _univariate_model
 
-    version = _resolve_version(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME)
+    version = resolve_version(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME)
 
     try:
         _setup_mlflow()
@@ -184,7 +184,7 @@ def load_univariate_pipeline():
     if _univariate_pipeline is not None:
         return _univariate_pipeline
 
-    version = _resolve_version(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME)
+    version = resolve_version(MODEL_UNIVARIATE, settings.MLFLOW_UNIVARIATE_MODEL_NAME)
 
     try:
         _univariate_pipeline = _load_pipeline_from_mlflow(

@@ -133,3 +133,23 @@ def get_all_model_versions(model_name: str):
         })
 
     return result
+
+
+# todo: i can reuse this in many parts of the code
+def get_run_id_for_version(model_name: str, version: str) -> str | None:
+    """
+    Resolves a model version number to its MLflow run_id.
+
+    This is the bridge between the human-readable version number (e.g. "32")
+    and the UUID run_id under which all artifacts are physically stored in MLflow.
+
+    Returns:
+        run_id string if found, None if the version does not exist.
+    """
+    try:
+        setup_mlflow()
+        client = mlflow.tracking.MlflowClient()
+        mv = client.get_model_version(model_name, version)
+        return mv.run_id
+    except Exception:
+        return None
