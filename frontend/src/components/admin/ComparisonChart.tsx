@@ -1,25 +1,49 @@
 "use client";
-
 import {
     ComposedChart, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import type {BackendComparison} from "@/types";
 
+// Describes one data point in the merged comparison chart.
+// Each date may have actual, keras, or onnx values depending on availability.
+interface ChartRow {
+    date: string;
+    actual?: number;
+    keras?: number;
+    onnx?: number;
+}
+
+// Recharts tooltip content props — see PerformanceChart for full explanation
+interface TooltipEntry {
+    name?: string;
+    value?: number | string;
+    color?: string;
+    dataKey?: string | number;
+}
+
+interface ChartTooltipProps {
+    active?: boolean;
+    payload?: TooltipEntry[];
+    label?: string | number;
+}
+
 function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en-GB", {day: "numeric", month: "short"});
 }
 
-const CustomTooltip = ({active, payload, label}: any) => {
+const CustomTooltip = ({active, payload, label}: ChartTooltipProps) => {
     if (!active || !payload?.length) return null;
     return (
         <div className="bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 shadow-xl">
-            <p className="text-xs text-gray-400 mb-2">{formatDate(label)}</p>
-            {payload.map((p: any) => (
-                <div key={p.name} className="flex items-center gap-2 text-sm">
-                    <span className="w-2 h-2 rounded-full" style={{background: p.color}}/>
-                    <span className="text-gray-300">{p.name}:</span>
-                    <span className="font-mono font-semibold text-white">{Number(p.value).toFixed(4)} GW</span>
+            <p className="text-xs text-gray-400 mb-2">{formatDate(String(label))}</p>
+            {payload.map((entry) => (
+                <div key={String(entry.dataKey)} className="flex items-center gap-2 text-sm">
+                    <span className="w-2 h-2 rounded-full" style={{background: entry.color}}/>
+                    <span className="text-gray-300">{entry.name}:</span>
+                    <span className="font-mono font-semibold text-white">
+                        {Number(entry.value).toFixed(4)} GW
+                    </span>
                 </div>
             ))}
         </div>
@@ -31,15 +55,17 @@ function MetricPill({label, onnxVal, kerasVal}: {
     onnxVal?: number;
     kerasVal?: number;
 }) {
-    const diff = onnxVal !== undefined && kerasVal !== undefined
-        ? ((onnxVal - kerasVal) / kerasVal * 100).toFixed(1)
-        : null;
+    const diff =
+        onnxVal !== undefined && kerasVal !== undefined
+            ? ((onnxVal - kerasVal) / kerasVal * 100).toFixed(1)
+            : null;
 
-    const diffColor = diff === null
-        ? "text-gray-500"
-        : parseFloat(diff) > 0
-            ? "text-red-400"
-            : "text-emerald-400";
+    const diffColor =
+        diff === null
+            ? "text-gray-500"
+            : parseFloat(diff) > 0
+                ? "text-red-400"
+                : "text-emerald-400";
 
     return (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -74,8 +100,9 @@ interface Props {
 export function ComparisonChart({comparison}: Props) {
     const {onnx, keras} = comparison;
 
-    // Merge performance points by date for the chart
-    const dateMap: Record<string, any> = {};
+    // Merge performance points from both backends into one array keyed by date.
+    // Using a Record here because we're building rows incrementally from two sources.
+    const dateMap: Record<string, ChartRow> = {};
 
     if (keras.available) {
         keras.performance.forEach((p) => {
@@ -91,8 +118,9 @@ export function ComparisonChart({comparison}: Props) {
         });
     }
 
+    // Object.values returns ChartRow[] — sort is inferred, no any needed
     const chartData = Object.values(dateMap).sort(
-        (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
     const metricKeys = ["mae", "mse", "rmse", "mean_error", "max_error"] as const;
@@ -107,7 +135,6 @@ export function ComparisonChart({comparison}: Props) {
 
     return (
         <div className="space-y-6">
-            {/* Status badges */}
             <div className="flex gap-3 flex-wrap">
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
                     onnx.available
@@ -127,7 +154,6 @@ export function ComparisonChart({comparison}: Props) {
                 </div>
             </div>
 
-            {/* Metrics comparison grid */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {metricKeys.map((k) => (
                     <MetricPill
@@ -139,7 +165,6 @@ export function ComparisonChart({comparison}: Props) {
                 ))}
             </div>
 
-            {/* Overlay chart */}
             <div>
                 <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider">
                     Predicted values — same evaluation points, both backends
@@ -173,35 +198,15 @@ export function ComparisonChart({comparison}: Props) {
                         />
                         <Tooltip content={<CustomTooltip/>}/>
                         <Legend wrapperStyle={{fontSize: "12px", color: "#9ca3af", paddingTop: "12px"}}/>
-                        <Line
-                            type="monotone"
-                            dataKey="actual"
-                            stroke="#3b82f6"
-                            strokeWidth={2}
-                            dot={false}
-                            name="Actual"
-                        />
+                        <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} dot={false}
+                              name="Actual"/>
                         {keras.available && (
-                            <Line
-                                type="monotone"
-                                dataKey="keras"
-                                stroke="#60a5fa"
-                                strokeWidth={1.5}
-                                strokeDasharray="6 3"
-                                dot={false}
-                                name="Keras"
-                            />
+                            <Line type="monotone" dataKey="keras" stroke="#60a5fa" strokeWidth={1.5}
+                                  strokeDasharray="6 3" dot={false} name="Keras"/>
                         )}
                         {onnx.available && (
-                            <Line
-                                type="monotone"
-                                dataKey="onnx"
-                                stroke="#a855f7"
-                                strokeWidth={1.5}
-                                strokeDasharray="3 3"
-                                dot={false}
-                                name={`ONNX (${onnx.variant ?? "base"})`}
-                            />
+                            <Line type="monotone" dataKey="onnx" stroke="#a855f7" strokeWidth={1.5}
+                                  strokeDasharray="3 3" dot={false} name={`ONNX (${onnx.variant ?? "base"})`}/>
                         )}
                     </ComposedChart>
                 </ResponsiveContainer>

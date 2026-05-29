@@ -115,7 +115,7 @@ interface ActiveModelInfo {
     model_name: string;
 }
 
-interface ActiveState {
+export interface ActiveState {
     multivariate: ActiveModelInfo;
     univariate: ActiveModelInfo;
 }

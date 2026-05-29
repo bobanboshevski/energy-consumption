@@ -1,36 +1,67 @@
-import { useState, useEffect } from "react";
-import { predictionsApi } from "@/lib/api";
-import type { ForecastPoint, HistoricalPoint } from "@/types";
+import {useReducer, useCallback, useEffect} from "react";
+import {predictionsApi} from "@/lib/api";
+import type {ForecastPoint, HistoricalPoint} from "@/types";
 
-export function useForecast() {
-  const [forecast, setForecast] = useState<ForecastPoint[]>([]);
-  const [historical, setHistorical] = useState<HistoricalPoint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// ── State ─────────────────────────────────────────────────────────────────────
+interface ForecastState {
+    forecast: ForecastPoint[];
+    historical: HistoricalPoint[];
+    loading: boolean;
+    error: string | null;
+}
 
-  const load = async (days = 60) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [f, h] = await Promise.all([
-        predictionsApi.getForecast(),
-        predictionsApi.getHistorical(days),
-      ]);
-      setForecast(f.data);
-      setHistorical(h.data);
-    } catch (e) {
-      setError("Failed to load data. Please try again.");
-    } finally {
-      setLoading(false);
+const INITIAL_STATE: ForecastState = {
+    forecast: [],
+    historical: [],
+    loading: true,
+    error: null,
+};
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+type ForecastAction =
+    | { type: "LOAD_START" }
+    | { type: "LOAD_DONE"; forecast: ForecastPoint[]; historical: HistoricalPoint[] }
+    | { type: "LOAD_ERROR"; error: string };
+
+function forecastReducer(state: ForecastState, action: ForecastAction): ForecastState {
+    switch (action.type) {
+        case "LOAD_START":
+            return {...state, loading: true, error: null};
+        case "LOAD_DONE":
+            return {...state, loading: false, forecast: action.forecast, historical: action.historical};
+        case "LOAD_ERROR":
+            return {...state, loading: false, error: action.error};
     }
-  };
+}
 
-  const refresh = async () => {
-    await predictionsApi.refreshData();
-    await load();
-  };
+// ── Hook ──────────────────────────────────────────────────────────────────────
+export function useForecast() {
+    const [state, dispatch] = useReducer(forecastReducer, INITIAL_STATE);
 
-  useEffect(() => { load(); }, []);
+    // dispatch is stable — [] deps are correct.
+    const load = useCallback(async (days = 60) => {
+        dispatch({type: "LOAD_START"});
+        try {
+            const [f, h] = await Promise.all([
+                predictionsApi.getForecast(),
+                predictionsApi.getHistorical(days),
+            ]);
+            dispatch({type: "LOAD_DONE", forecast: f.data, historical: h.data});
+        } catch {
+            dispatch({type: "LOAD_ERROR", error: "Failed to load data. Please try again."});
+        }
+    }, []);
 
-  return { forecast, historical, loading, error, refresh };
+    // refresh invalidates the server cache then reloads — awaits load() intentionally
+    const refresh = useCallback(async () => {
+        await predictionsApi.refreshData();
+        await load();
+    }, [load]);
+
+    // void: effect can't return a Promise; dispatch inside load is not flagged as setState
+    useEffect(() => {
+        void load();
+    }, [load]);
+
+    return {...state, refresh};
 }

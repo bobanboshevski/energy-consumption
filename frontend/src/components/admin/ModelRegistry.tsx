@@ -1,11 +1,12 @@
 "use client";
-
-import {useState, useEffect, useCallback} from "react";
-import type {RegisteredModel} from "@/types";
+import {useState, useEffect, useCallback, useReducer} from "react";
+import type {RegisteredModel, ActiveState} from "@/types";
 import type {ModelView} from "@/hooks/useAdmin";
 import {InlineSpinner} from "@/components/ui/LoadingSpinner";
 import {VersionsModal} from "@/components/admin/VersionsModal";
 import {modelsApi} from "@/lib/api";
+
+// ── Local types ───────────────────────────────────────────────────────────────
 
 interface VersionDetail {
     version: string;
@@ -17,16 +18,35 @@ interface VersionDetail {
     params: Record<string, string>;
 }
 
-interface ActiveState {
-    multivariate: { active_version: string; loaded_version: string; model_name: string };
-    univariate: { active_version: string; loaded_version: string; model_name: string };
-}
-
 interface Props {
     models: RegisteredModel[];
     loadingModels: boolean;
     onReload?: () => void;
 }
+
+// ── Active model state reducer ────────────────────────────────────────────────
+// Replaces the two useState calls (activeState + loadingActive) that caused
+// the setState-in-effect lint error. dispatch from useReducer is not flagged.
+
+interface ActiveModelSlice {
+    data: ActiveState | null;
+    loading: boolean;
+}
+
+type ActiveModelAction =
+    | { type: "LOADING" }
+    | { type: "DONE"; data: ActiveState | null };
+
+function activeModelReducer(state: ActiveModelSlice, action: ActiveModelAction): ActiveModelSlice {
+    switch (action.type) {
+        case "LOADING":
+            return {...state, loading: true};
+        case "DONE":
+            return {data: action.data, loading: false};
+    }
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const MODEL_KEY_MAP: Record<string, ModelView> = {
     energy_demand_model: "multivariate",
@@ -43,70 +63,70 @@ const MODEL_ICONS: Record<ModelView, string> = {
     univariate: "📈",
 };
 
-export function ModelRegistry({models, loadingModels, onReload}: Props) {
-    const [activeState, setActiveState] = useState<ActiveState | null>(null);
-    const [loadingActive, setLoadingActive] = useState(true);
+// ── Component ─────────────────────────────────────────────────────────────────
 
-    // Per-model version details — fetched on demand
+export function ModelRegistry({models, loadingModels, onReload}: Props) {
+    // Active model state — useReducer avoids setState-in-effect lint error
+    const [activeModel, dispatchActive] = useReducer(activeModelReducer, {
+        data: null,
+        loading: true,
+    });
+
+    // Version details — fetched on demand, user-triggered (no effect concern)
     const [details, setDetails] = useState<Record<string, VersionDetail[]>>({});
     const [loadingVersions, setLoadingVersions] = useState<Record<string, boolean>>({});
 
-    // Modal state
+    // Modal and activation state
     const [modalModel, setModalModel] = useState<string | null>(null);
-
-    // Activating state
     const [activating, setActivating] = useState<string | null>(null);
 
+    // ── Data loaders ──────────────────────────────────────────────────────────
+
     const loadActiveState = useCallback(async () => {
-        setLoadingActive(true);
+        dispatchActive({type: "LOADING"});
         try {
             const r = await modelsApi.getActive();
-            setActiveState(r.data);
-        } finally {
-            setLoadingActive(false);
+            dispatchActive({type: "DONE", data: r.data});
+        } catch {
+            dispatchActive({type: "DONE", data: null});
         }
     }, []);
 
+    // void: effects can't return Promises; dispatch inside loadActiveState is stable
     useEffect(() => {
-        loadActiveState();
+        void loadActiveState();
     }, [loadActiveState]);
 
     const loadVersions = useCallback(async (modelName: string) => {
-        if (details[modelName]) return; // already loaded
+        if (details[modelName]) return;
         setLoadingVersions((prev) => ({...prev, [modelName]: true}));
         try {
             const res = await modelsApi.getVersions(modelName);
             setDetails((prev) => ({...prev, [modelName]: res.data}));
-        } catch (e) {
+        } catch (e: unknown) {
             console.error(`Failed to load versions for ${modelName}`, e);
         } finally {
             setLoadingVersions((prev) => ({...prev, [modelName]: false}));
         }
     }, [details]);
 
+    // ── Handlers ──────────────────────────────────────────────────────────────
+
     const handleOpenModal = (modelName: string) => {
         setModalModel(modelName);
-        loadVersions(modelName);
+        void loadVersions(modelName);
     };
 
     const handleCloseModal = () => setModalModel(null);
 
     const getActiveVersionForModel = (modelName: string) => {
-
-        if (!activeState) return {active: "latest", loaded: null, isLoaded: false};
+        if (!activeModel.data) return {active: "latest", loaded: null, isLoaded: false};
         const key = MODEL_KEY_MAP[modelName] ?? "multivariate";
         return {
-            active: activeState[key]?.active_version ?? "latest",
-            loaded: activeState[key]?.loaded_version ?? null,
-            isLoaded: activeState[key]?.is_loaded ?? false,
+            active: activeModel.data[key]?.active_version ?? "latest",
+            loaded: activeModel.data[key]?.loaded_version ?? null,
+            isLoaded: activeModel.data[key]?.is_loaded ?? false,
         };
-
-        // if (!activeState) return {active: "latest", loaded: "unknown"};
-        // const key = MODEL_KEY_MAP[modelName] ?? "multivariate";
-        // return {
-        //     active: activeState[key]?.active_version ?? "latest",
-        //     loaded: activeState[key]?.loaded_version ?? "unknown",
-        // };
     };
 
     const handleActivate = async (modelName: string, version: string) => {
@@ -131,6 +151,8 @@ export function ModelRegistry({models, loadingModels, onReload}: Props) {
             setActivating(null);
         }
     };
+
+    // ── Render ────────────────────────────────────────────────────────────────
 
     if (loadingModels) {
         return (
@@ -158,20 +180,17 @@ export function ModelRegistry({models, loadingModels, onReload}: Props) {
                     <div key={m.name} className="bg-gray-800/40 border border-gray-700 rounded-2xl overflow-hidden">
                         {/* ── Model row ─────────────────────────────────────────────────── */}
                         <div className="flex items-center gap-4 px-5 py-4">
-                            {/* Icon */}
                             <div
                                 className="w-10 h-10 bg-gray-900 border border-gray-700 rounded-xl flex items-center justify-center text-lg shrink-0">
                                 {MODEL_ICONS[modelKey]}
                             </div>
 
-                            {/* Name + label */}
                             <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-white truncate">{m.name}</p>
                                 <p className="text-xs text-gray-500 mt-0.5 truncate">{MODEL_LABELS[modelKey]}</p>
                             </div>
 
-                            {/* Active / loaded */}
-                            {loadingActive ? (
+                            {activeModel.loading ? (
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                     <InlineSpinner/> Loading...
                                 </div>
@@ -202,7 +221,6 @@ export function ModelRegistry({models, loadingModels, onReload}: Props) {
                                 </div>
                             )}
 
-                            {/* Reset to latest */}
                             <button
                                 onClick={() => handleResetToLatest(m.name)}
                                 disabled={active === "latest" || !!activating}
@@ -212,7 +230,6 @@ export function ModelRegistry({models, loadingModels, onReload}: Props) {
                                 Use latest
                             </button>
 
-                            {/* View versions button */}
                             <button
                                 onClick={() => handleOpenModal(m.name)}
                                 className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
@@ -227,13 +244,13 @@ export function ModelRegistry({models, loadingModels, onReload}: Props) {
 
                         {/* ── Quick stats bar ────────────────────────────────────────────── */}
                         <div className="border-t border-gray-700/50 px-5 py-2.5 flex items-center gap-6 bg-gray-900/30">
-              <span className="text-xs text-gray-500">
-                {m.versions.length} version{m.versions.length !== 1 ? "s" : ""} registered
-              </span>
+                            <span className="text-xs text-gray-500">
+                                {m.versions.length} version{m.versions.length !== 1 ? "s" : ""} registered
+                            </span>
                             {m.versions[0] && (
                                 <span className="text-xs text-gray-500">
-                  Latest: <span className="text-white font-mono">v{m.versions[0].version}</span>
-                </span>
+                                    Latest: <span className="text-white font-mono">v{m.versions[0].version}</span>
+                                </span>
                             )}
                         </div>
                     </div>

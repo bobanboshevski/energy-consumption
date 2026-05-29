@@ -1,65 +1,147 @@
-import {useState, useEffect} from "react";
+import axios from "axios";
+import {useReducer, useCallback, useEffect} from "react";
 import {univariateApi} from "@/lib/api";
 import type {UnivariatePrediction, UnivariateRangePoint, UnivariateModelInfo} from "@/types";
 
-export function useUnivariateInfo() {
-    const [info, setInfo] = useState<UnivariateModelInfo | null>(null);
-    const [loading, setLoading] = useState(true);
+// ── useUnivariateInfo ─────────────────────────────────────────────────────────
 
-    useEffect(() => {
-        univariateApi.getInfo()
-            .then((r) => setInfo(r.data))
-            .catch(console.error)
-            .finally(() => setLoading(false));
+interface InfoState {
+    info: UnivariateModelInfo | null;
+    loading: boolean;
+}
+
+type InfoAction =
+    | { type: "LOAD_START" }
+    | { type: "LOAD_DONE"; info: UnivariateModelInfo };
+
+function infoReducer(state: InfoState, action: InfoAction): InfoState {
+    switch (action.type) {
+        case "LOAD_START":
+            return {...state, loading: true};
+        case "LOAD_DONE":
+            return {info: action.info, loading: false};
+    }
+}
+
+export function useUnivariateInfo() {
+    const [state, dispatch] = useReducer(infoReducer, {info: null, loading: true});
+
+    const load = useCallback(async () => {
+        dispatch({type: "LOAD_START"});
+        try {
+            const r = await univariateApi.getInfo();
+            dispatch({type: "LOAD_DONE", info: r.data});
+        } catch {
+            // info is non-critical — silently fail, leave loading: false
+            dispatch({type: "LOAD_DONE", info: null as unknown as UnivariateModelInfo});
+        }
     }, []);
 
-    return {info, loading};
+    useEffect(() => {
+        void load();
+    }, [load]);
+
+    return {info: state.info, loading: state.loading};
+}
+
+// ── useDatePrediction ─────────────────────────────────────────────────────────
+
+interface DatePredictionState {
+    result: UnivariatePrediction | null;
+    loading: boolean;
+    error: string | null;
+}
+
+type DatePredictionAction =
+    | { type: "PREDICT_START" }
+    | { type: "PREDICT_DONE"; result: UnivariatePrediction }
+    | { type: "PREDICT_ERROR"; error: string }
+    | { type: "RESET" };
+
+function datePredictionReducer(state: DatePredictionState, action: DatePredictionAction): DatePredictionState {
+    switch (action.type) {
+        case "PREDICT_START":
+            return {result: null, loading: true, error: null};
+        case "PREDICT_DONE":
+            return {result: action.result, loading: false, error: null};
+        case "PREDICT_ERROR":
+            return {result: null, loading: false, error: action.error};
+        case "RESET":
+            return {result: null, loading: false, error: null};
+    }
 }
 
 export function useDatePrediction() {
-    const [result, setResult] = useState<UnivariatePrediction | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [state, dispatch] = useReducer(datePredictionReducer, {
+        result: null,
+        loading: false,
+        error: null,
+    });
 
-    const predict = async (date: string) => {
-        setLoading(true);
-        setError(null);
-        setResult(null);
+    const predict = useCallback(async (date: string) => {
+        dispatch({type: "PREDICT_START"});
         try {
             const r = await univariateApi.predictDate(date);
-            setResult(r.data);
-        } catch (e: any) {
-            setError(e.response?.data?.detail || "Prediction failed. Please try again.");
-        } finally {
-            setLoading(false);
+            dispatch({type: "PREDICT_DONE", result: r.data});
+        } catch (e: unknown) {
+            // isAxiosError narrows the unknown error to AxiosError — no any needed
+            const message = axios.isAxiosError(e)
+                ? (e.response?.data?.detail ?? "Prediction failed. Please try again.")
+                : "Prediction failed. Please try again.";
+            dispatch({type: "PREDICT_ERROR", error: message});
         }
-    };
+    }, []);
 
-    const reset = () => {
-        setResult(null);
-        setError(null);
-    };
+    const reset = useCallback(() => {
+        dispatch({type: "RESET"});
+    }, []);
 
-    return {result, loading, error, predict, reset};
+    return {...state, predict, reset};
+}
+
+// ── useLongRangeForecast ──────────────────────────────────────────────────────
+
+interface LongRangeState {
+    data: UnivariateRangePoint[];
+    loading: boolean;
+    error: string | null;
+}
+
+type LongRangeAction =
+    | { type: "LOAD_START" }
+    | { type: "LOAD_DONE"; data: UnivariateRangePoint[] }
+    | { type: "LOAD_ERROR"; error: string };
+
+function longRangeReducer(state: LongRangeState, action: LongRangeAction): LongRangeState {
+    switch (action.type) {
+        case "LOAD_START":
+            return {...state, loading: true, error: null};
+        case "LOAD_DONE":
+            return {data: action.data, loading: false, error: null};
+        case "LOAD_ERROR":
+            return {...state, loading: false, error: action.error};
+    }
 }
 
 export function useLongRangeForecast() {
-    const [data, setData] = useState<UnivariateRangePoint[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [state, dispatch] = useReducer(longRangeReducer, {
+        data: [],
+        loading: false,
+        error: null,
+    });
 
-    const load = async (startDate: string, endDate: string) => {
-        setLoading(true);
-        setError(null);
+    const load = useCallback(async (startDate: string, endDate: string) => {
+        dispatch({type: "LOAD_START"});
         try {
             const r = await univariateApi.predictRange(startDate, endDate);
-            setData(r.data);
-        } catch (e: any) {
-            setError(e.response?.data?.detail || "Failed to load forecast range.");
-        } finally {
-            setLoading(false);
+            dispatch({type: "LOAD_DONE", data: r.data});
+        } catch (e: unknown) {
+            const message = axios.isAxiosError(e)
+                ? (e.response?.data?.detail ?? "Failed to load forecast range.")
+                : "Failed to load forecast range.";
+            dispatch({type: "LOAD_ERROR", error: message});
         }
-    };
+    }, []);
 
-    return {data, loading, error, load};
+    return {...state, load};
 }

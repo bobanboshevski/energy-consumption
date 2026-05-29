@@ -1,11 +1,17 @@
 "use client";
-
 import {useReducer, useCallback} from "react";
+import type {AxiosResponse} from "axios";
 import {explainabilityApi, extractApiError} from "@/lib/explainabilityApi";
 import type {ShapArtifact, ExplainabilityErrors} from "@/types/explainability";
 
-// ── State ──────────────────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
+// Explicit union replaces the (as any) casts — TypeScript knows exactly what
+// each Promise.all element can be after the .catch() override.
+type ApiSuccess = AxiosResponse<ShapArtifact>;
+type ApiFailure = { error: unknown };
+type ApiResult = ApiSuccess | ApiFailure;
 
+// ── State ──────────────────────────────────────────────────────────────────────
 interface ExplainabilityState {
     keras: ShapArtifact | null;
     onnx: ShapArtifact | null;
@@ -23,7 +29,6 @@ const INITIAL_STATE: ExplainabilityState = {
 };
 
 // ── Actions ────────────────────────────────────────────────────────────────────
-
 type Action =
     | { type: "LOADING" }
     | {
@@ -50,7 +55,6 @@ function reducer(state: ExplainabilityState, action: Action): ExplainabilityStat
 }
 
 // ── Hook ───────────────────────────────────────────────────────────────────────
-
 /**
  * Loads SHAP explanations for all three model variants independently.
  * The three requests fire in parallel but are separate from all other admin requests.
@@ -62,20 +66,22 @@ export function useExplainability() {
     const load = useCallback(async (version?: string) => {
         dispatch({type: "LOADING"});
 
+        // Explicit return type on .catch() lets TypeScript infer ApiResult for each element,
+        // removing the need for (as any) when reading .data on the success branch.
         const [kerasResult, onnxResult, onnxQResult] = await Promise.all([
-            explainabilityApi.getKeras(version).catch((e) => ({error: e})),
-            explainabilityApi.getOnnx(version).catch((e) => ({error: e})),
-            explainabilityApi.getOnnxQuantized(version).catch((e) => ({error: e})),
-        ]);
+            explainabilityApi.getKeras(version).catch((e): ApiFailure => ({error: e})),
+            explainabilityApi.getOnnx(version).catch((e): ApiFailure => ({error: e})),
+            explainabilityApi.getOnnxQuantized(version).catch((e): ApiFailure => ({error: e})),
+        ]) satisfies [ApiResult, ApiResult, ApiResult];
 
-        const isError = (r: unknown): r is { error: unknown } =>
-            typeof r === "object" && r !== null && "error" in r;
+        // Type guard: AxiosResponse<ShapArtifact> has no "error" property
+        const isError = (r: ApiResult): r is ApiFailure => "error" in r;
 
         dispatch({
             type: "DONE",
-            keras: isError(kerasResult) ? null : (kerasResult as any).data,
-            onnx: isError(onnxResult) ? null : (onnxResult as any).data,
-            onnxQuantized: isError(onnxQResult) ? null : (onnxQResult as any).data,
+            keras: isError(kerasResult) ? null : kerasResult.data,
+            onnx: isError(onnxResult) ? null : onnxResult.data,
+            onnxQuantized: isError(onnxQResult) ? null : onnxQResult.data,
             errors: {
                 keras: isError(kerasResult) ? extractApiError(kerasResult.error) : null,
                 onnx: isError(onnxResult) ? extractApiError(onnxResult.error) : null,

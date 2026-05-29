@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import {useLongRangeForecast} from "@/hooks/useUnivariate";
 import {InlineSpinner} from "@/components/ui/LoadingSpinner";
-import type {DemandCategory} from "@/types";
+import type {DemandCategory, UnivariateRangePoint} from "@/types";
 
 const PRESETS: { label: string; months: number }[] = [
     {label: "1 month", months: 1},
@@ -36,12 +36,26 @@ const categoryColor: Record<DemandCategory, string> = {
     high: "#ef4444",
 };
 
-const CustomTooltip = ({active, payload, label}: any) => {
+interface TooltipEntry {
+    name?: string;
+    value?: number | string;
+    color?: string;
+    dataKey?: string | number;
+    payload?: UnivariateRangePoint;   // ← the actual chart data row
+}
+
+interface ChartTooltipProps {
+    active?: boolean;
+    payload?: TooltipEntry[];
+    label?: string | number;
+}
+
+const CustomTooltip = ({active, payload, label}: ChartTooltipProps) => {
     if (!active || !payload?.length) return null;
     const point = payload[0]?.payload;
     return (
         <div className="bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 shadow-xl">
-            <p className="text-xs text-gray-400 mb-1">{formatDate(label)}</p>
+            <p className="text-xs text-gray-400 mb-1">{formatDate(String(label))}</p>
             <p className="text-sm font-mono font-semibold text-white">
                 {Number(payload[0]?.value).toFixed(4)} GW
             </p>

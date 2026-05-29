@@ -1,4 +1,4 @@
-import type {DriftReport, ValidationReport} from "@/types";
+import type {ValidationReport} from "@/types";
 import {monitoringApi} from "@/lib/api";
 
 export function GxStatus({report}: { report: ValidationReport }) {
@@ -16,7 +16,8 @@ export function GxStatus({report}: { report: ValidationReport }) {
         );
     }
 
-    const passed = (report as any).passed !== false;
+    // passed is optional — treat undefined as true (absence of failure = passing)
+    const passed = report.passed !== false;
 
     return (
         <div className="space-y-4">
@@ -35,7 +36,7 @@ export function GxStatus({report}: { report: ValidationReport }) {
                     </p>
                     {report.size_kb && (
                         <p className="text-xs text-gray-400 mt-0.5">
-                            Size: {report.size_kb} KB · Source: {(report as any).source}
+                            Size: {report.size_kb} KB · Source: {report.source}
                         </p>
                     )}
 
