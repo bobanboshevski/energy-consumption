@@ -1,0 +1,59 @@
+name: Backend
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  # Block 1 validate the Python project builds correctly
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --frozen --no-dev
+
+      - name: Validate Python syntax
+        working-directory: backend
+        run: uv run python -m compileall app/ -q
+
+  # Block 2 Docker build + push
+  build-and-push:
+    name: Build & Push
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/energy-forecast-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/energy-forecast-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/energy-forecast-backend:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/energy-forecast-backend:buildcache,mode=max
