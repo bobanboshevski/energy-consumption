@@ -5,9 +5,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "frontend/**"
+      - "backend/**"
   pull_request:
     branches:
       - main
+    paths:
+      - "frontend/**"
+      - "backend/**"
 
 jobs:
   # Backend and frontend run in parallel
