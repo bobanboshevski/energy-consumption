@@ -14,6 +14,7 @@ from app.core.activate_model import (
     MODEL_MULTIVARIATE, MODEL_UNIVARIATE,
 )
 from app.core.config import settings
+from app.core.mlflow_client import get_latest_version
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -33,15 +34,8 @@ def resolve_version(model_key: str, model_name: str) -> str:
     active = get_active_version(model_key)
     if active != "latest":
         return active
-    try:
-        _setup_mlflow()
-        client = mlflow.tracking.MlflowClient()
-        versions = client.search_model_versions(f"name='{model_name}'")
-        if versions:
-            return max(versions, key=lambda v: int(v.version)).version
-    except Exception as e:
-        print(f"WARNING: Could not resolve latest version for {model_name}: {e}")
-    return "1"
+    latest = get_latest_version(model_name)
+    return latest if latest is not None else "1"
 
 
 def _load_pipeline_from_mlflow(model_name: str, version: str, artifact_filename: str):

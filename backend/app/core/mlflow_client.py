@@ -153,3 +153,23 @@ def get_run_id_for_version(model_name: str, version: str) -> str | None:
         return mv.run_id
     except Exception:
         return None
+
+
+def get_latest_version(model_name: str) -> str | None:
+    """
+    Returns the highest (newest) version number for a registered model as a string,
+    or None if the model has no versions or MLflow is unreachable.
+
+    Single source of truth for resolving the "latest" alias to a concrete
+    MLflow version number — used by both model loading and explainability.
+    """
+    try:
+        setup_mlflow()
+        client = mlflow.tracking.MlflowClient()
+        versions = client.search_model_versions(f"name='{model_name}'")
+        if not versions:
+            return None
+        return max(versions, key=lambda v: int(v.version)).version
+    except Exception as e:
+        print(f"WARNING: Could not resolve latest version for {model_name}: {e}")
+        return None

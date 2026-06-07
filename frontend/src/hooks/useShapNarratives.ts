@@ -1,9 +1,8 @@
 "use client";
-import {useReducer, useCallback} from "react";
+import {useReducer, useCallback, useRef} from "react";
 import {explainabilityApi, extractApiError} from "@/lib/explainabilityApi";
 import type {ShapNarrative, ShapVariant} from "@/types/explainability";
 
-// One entry per (variant, date) key
 type NarrativeEntry =
     | { status: "loading" }
     | { status: "done"; data: ShapNarrative; predictedDemand: number }
@@ -36,37 +35,46 @@ function reducer(state: State, action: Action): State {
 
 const keyOf = (variant: ShapVariant, date: string) => `${variant}:${date}`;
 
-/**
- * On-demand LLM narratives, keyed by `${variant}:${date}`.
- * Kept separate from useExplainability — narratives are generated lazily,
- * only for the variants currently visible, and only when a date is selected.
- */
 export function useShapNarratives(version?: string) {
     const [state, dispatch] = useReducer(reducer, {entries: {}});
 
-    // Idempotent: skips keys already loading or done, so the effect can re-run freely.
+    // Keys already started (loading or done). A ref so fetchFor stays stable
+    // (no state.entries dependency → no effect churn, no stale closures).
+    const startedRef = useRef<Set<string>>(new Set());
+    // The date of the most recent request — lets an in-progress sequential run
+    // stop early when the admin switches to a different date.
+    const activeDateRef = useRef<string | null>(null);
+
     const fetchFor = useCallback(
         (date: string, variants: ShapVariant[]) => {
-            for (const variant of variants) {
-                const key = keyOf(variant, date);
-                const existing = state.entries[key];
-                if (existing && (existing.status === "loading" || existing.status === "done")) continue;
+            activeDateRef.current = date;
 
-                dispatch({type: "REQUEST", key});
-                explainabilityApi
-                    .getNarrative(variant, date, version)
-                    .then((r) =>
+            const run = async () => {
+                for (const variant of variants) {
+                    if (activeDateRef.current !== date) return; // date changed — abandon this run
+                    const key = keyOf(variant, date);
+                    if (startedRef.current.has(key)) continue; // already loading or done
+
+                    startedRef.current.add(key);
+                    dispatch({type: "REQUEST", key});
+                    try {
+                        const r = await explainabilityApi.getNarrative(variant, date, version);
                         dispatch({
                             type: "SUCCESS",
                             key,
                             data: r.data.narrative,
                             predictedDemand: r.data.predicted_demand,
-                        }),
-                    )
-                    .catch((e) => dispatch({type: "FAILURE", key, error: extractApiError(e)}));
-            }
+                        });
+                    } catch (e) {
+                        startedRef.current.delete(key); // failed → allow a future retry
+                        dispatch({type: "FAILURE", key, error: extractApiError(e)});
+                    }
+                }
+            };
+
+            void run();
         },
-        [state.entries, version],
+        [version],
     );
 
     const get = useCallback(

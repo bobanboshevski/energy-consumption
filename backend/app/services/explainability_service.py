@@ -2,9 +2,10 @@ from typing import Optional
 
 from app.core.activate_model import MODEL_MULTIVARIATE, get_active_version
 from app.core.config import settings
-from app.core.exceptions.exceptions import ExplanationDateNotFound
+from app.core.exceptions.exceptions import ExplanationDateNotFound, ModelVersionNotFound
 from app.core.explainability.explainability_cache import get_shap_artifact
 from app.core.llm.shap_narrative_nlp import build_llm_payload, get_shap_narrative
+from app.core.mlflow_client import get_latest_version
 from app.core.model_loader import resolve_version
 
 """
@@ -27,17 +28,25 @@ VALID_VARIANTS = {"keras", "onnx", "onnx_quantized"}
 _narrative_cache: dict[tuple, dict] = {}
 
 
-def _resolve_version(version: Optional[str]) -> str:
+def _resolve_version(version: str | None) -> str:
     """
-    Returns the version to use for explainability lookup.
+    Resolves a requested version to a concrete numeric MLflow version.
 
-    If version is None or "latest", resolves the currently active version
-    from active_model.json — the same version displayed on the landing page
-    and in the admin dashboard.
+    - None     → the active version configured in active_model.json
+    - "latest" → highest numeric version in the registry (this is the active
+                 default after a fresh container start, since active_model.json
+                 resets to "latest" when not persisted)
+    - "66"     → returned unchanged
     """
-    if version is None:
-        return get_active_version(MODEL_MULTIVARIATE)
-    return version
+    resolved = version if version is not None else get_active_version(MODEL_MULTIVARIATE)
+
+    if resolved == "latest":
+        latest = get_latest_version(settings.MLFLOW_MODEL_NAME)
+        if latest is None:
+            raise ModelVersionNotFound(settings.MLFLOW_MODEL_NAME, "latest")
+        return latest
+
+    return resolved
 
 
 def get_explanations(
