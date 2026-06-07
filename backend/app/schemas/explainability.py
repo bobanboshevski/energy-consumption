@@ -2,8 +2,9 @@
 Pydantic response schemas for SHAP explainability endpoints.
 These define the exact shape of the JSON returned to the frontend.
 """
+from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 
 
 class FeatureImportance(BaseModel):
@@ -83,3 +84,26 @@ class ExplainabilityUnavailableResponse(BaseModel):
     model_variant: str
     version: str
     reason: str
+
+
+class ShapNarrative(BaseModel):
+    # extra="ignore" keeps us robust if the LLM adds/omits fields
+    model_config = ConfigDict(extra="ignore")
+
+    date: Optional[str] = None
+    variant: Optional[str] = None
+    headline: Optional[str] = None
+    predicted_demand_gw: Optional[float] = None
+    top_feature: Optional[str] = None
+    top_feature_share_pct: Optional[float] = None
+    most_influential_day: Optional[str] = None
+    key_findings: list[str] = []
+    summary: Optional[str] = None
+
+
+class NarrativeResponse(BaseModel):
+    variant: str
+    date: str
+    version: Optional[str] = None
+    predicted_demand: float  # authoritative value from the SHAP artifact, NOT the LLM's rounded one
+    narrative: ShapNarrative

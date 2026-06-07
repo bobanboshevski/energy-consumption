@@ -4,6 +4,7 @@ from app.core.activate_model import MODEL_MULTIVARIATE, get_active_version
 from app.core.config import settings
 from app.core.exceptions.exceptions import ExplanationDateNotFound
 from app.core.explainability.explainability_cache import get_shap_artifact
+from app.core.llm.shap_narrative_nlp import build_llm_payload, get_shap_narrative
 from app.core.model_loader import resolve_version
 
 """
@@ -20,6 +21,10 @@ The route layer is the only place that maps exceptions to HTTP status codes.
 
 # Valid variant names and their display labels
 VALID_VARIANTS = {"keras", "onnx", "onnx_quantized"}
+
+# Narratives are deterministic for a given (version, variant, date) at temperature 0.1
+# and the underlying artifact is immutable, so we can cache indefinitely.
+_narrative_cache: dict[tuple, dict] = {}
 
 
 def _resolve_version(version: Optional[str]) -> str:
@@ -86,3 +91,35 @@ def get_explanations(
         "explanations": matched,
         "n_explanations": len(matched),
     }
+
+
+def get_narrative(variant: str, date: str, version: str | None = None) -> dict:
+    """
+    Returns an LLM-generated narrative for one (variant, date).
+
+    Reuses get_explanations() for version resolution, artifact fetch, and date
+    validation (so all ModelVersionNotFound / ExplainabilityNotAvailable /
+    ExplanationDateNotFound / MLflowUnavailable exceptions propagate unchanged).
+    """
+
+    # Single-date filtered artifact — raises the appropriate domain exception if missing
+    explanation = get_explanations(variant=variant, version=version, date=date)
+    resolved_version = explanation.get("version")
+
+    cache_key = (resolved_version, variant, date)
+    if cache_key in _narrative_cache:
+        return _narrative_cache[cache_key]
+
+    payload = build_llm_payload(explanation, date, variant)
+    narrative = get_shap_narrative(payload)
+
+    result = {
+        "variant": variant,
+        "date": date,
+        "version": resolved_version,
+        # authoritative GW value from the artifact (LLM value is display-only/rounded); WE USE THE MOST ACCURATE VALUE
+        "predicted_demand": payload["variant"]["predicted_demand_gw"],
+        "narrative": narrative,
+    }
+    _narrative_cache[cache_key] = result
+    return result

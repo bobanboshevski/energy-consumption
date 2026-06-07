@@ -109,7 +109,7 @@ def get_shap_artifact(
 
     print(f"[SHAP CACHE] →  MISS (v{version}, {variant}) — fetching from MLflow...")
 
-    # Delegate the MLflow call to mlflow_client — it already knows how to talk to MLflow
+    # Delegate the MLflow call to mlflow_client, it already knows how to talk to MLflow
     run_id = get_run_id_for_version(model_name, version)
     if run_id is None:
         raise ModelVersionNotFound(model_name, version)

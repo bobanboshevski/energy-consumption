@@ -314,7 +314,7 @@ with mlflow.start_run(run_name="train_energy_demand"):
             onnx_paths=onnx_artefacts,  # returned by export_and_quantize
             output_dir="models",
             n_background_samples=50,
-            kernel_nsamples=200,
+            kernel_nsamples=400,
         )
         for variant, artifact_path in shap_artifacts.items():
             mlflow.log_artifact(artifact_path)

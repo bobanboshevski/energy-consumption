@@ -4,6 +4,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: energy-forecast-backend
+    env_file:
+      - ./backend/.env
     ports:
       - "8002:8002"
     tmpfs:

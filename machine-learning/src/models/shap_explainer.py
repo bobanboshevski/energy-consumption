@@ -404,7 +404,7 @@ def generate_shap_explanations(
         onnx_paths: dict,
         output_dir: str = "models",
         n_background_samples: int = 50,
-        kernel_nsamples: int = 200,
+        kernel_nsamples: int = 400,
 ) -> dict:
     """
     Generates SHAP explanations for all available model variants.

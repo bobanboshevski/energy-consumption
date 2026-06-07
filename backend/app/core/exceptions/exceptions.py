@@ -59,3 +59,9 @@ class MLflowUnavailable(Exception):
 
     def __init__(self, detail: str):
         super().__init__(f"MLflow is unreachable: {detail}")
+
+
+class NarrativeUnavailable(Exception):
+    """Raised when the LLM narrative cannot be generated (upstream LLM failure
+    or malformed response). Mapped to HTTP 502."""
+    pass

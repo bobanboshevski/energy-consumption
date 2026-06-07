@@ -35,3 +35,23 @@ export interface ExplainabilityErrors {
     onnx: string | null;
     onnx_quantized: string | null;
 }
+
+export interface ShapNarrative {
+    date: string;
+    variant: string;
+    headline: string;
+    predicted_demand_gw: number;
+    top_feature: string;
+    top_feature_share_pct: number;
+    most_influential_day: string;
+    key_findings: string[];
+    summary: string;
+}
+
+export interface NarrativeResponse {
+    variant: ShapVariant;
+    date: string;
+    version: string | null;
+    predicted_demand: number;
+    narrative: ShapNarrative;
+}

@@ -57,10 +57,10 @@ class Settings(BaseSettings):
     DEMAND_LOW_THRESHOLD: float = 1.2
     DEMAND_HIGH_THRESHOLD: float = 1.6
 
-    # Second model — uncomment when classifier is ready
-    # CLASSIFIER_PATH: str = str(_ML_DIR / "models/classifier_energy_demand.pkl")
-    # LABEL_ENCODER_PATH: str = str(_ML_DIR / "models/label_encoder.pkl")
-    # THRESHOLDS_PATH: str = str(_ML_DIR / "models/demand_thresholds.pkl")
+    # LLM narrative (SHAP summaries)
+    LLM_ENDPOINT_URL: str = "https://isl-llm-infer.grega.xyz/v1/chat/completions"
+    LLM_API_KEY: str = ""
+    LLM_MODEL_NAME: str = "qwen3.6-27b"
 
     class Config:
         env_file = ".env"

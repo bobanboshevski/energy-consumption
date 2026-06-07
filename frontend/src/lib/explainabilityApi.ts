@@ -1,6 +1,6 @@
 import {api} from "@/lib/api";
 import axios from "axios";
-import {ShapArtifact} from "@/types/explainability";
+import {NarrativeResponse, ShapArtifact, ShapVariant} from "@/types/explainability";
 
 function params(version?: string) {
     return version ? {params: {version}} : {};
@@ -15,6 +15,11 @@ export const explainabilityApi = {
 
     getOnnxQuantized: (version?: string) =>
         api.get<ShapArtifact>("/explainability/onnx_quantized", params(version)),
+
+    getNarrative: (variant: ShapVariant, date: string, version?: string) =>
+        api.get<NarrativeResponse>(`/explainability/${variant}/narrative`, {
+            params: {date, ...(version ? {version} : {})},
+        }),
 };
 
 /** Extracts a human-readable message from an axios error. */

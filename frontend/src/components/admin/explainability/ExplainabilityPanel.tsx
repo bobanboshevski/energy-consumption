@@ -1,5 +1,4 @@
 "use client";
-
 import {useEffect, useState} from "react";
 import {useExplainability} from "@/hooks/useExplainability";
 import {DateSelector} from "./DateSelector";
@@ -10,6 +9,8 @@ import {ShapHeatmap} from "./ShapHeatmap";
 import {ALL_VARIANTS, VARIANT_CONFIG} from "./constants";
 import type {ShapArtifact, ShapVariant} from "@/types/explainability";
 import {LoadingSpinner} from "@/components/ui/LoadingSpinner";
+import {useShapNarratives} from "@/hooks/useShapNarratives";
+import {NarrativeSummary} from "@/components/admin/explainability/NarrativeSummary";
 
 interface Props {
     /** If provided, loads explanations for a specific version. Otherwise uses active. */
@@ -19,6 +20,7 @@ interface Props {
 export function ExplainabilityPanel({version}: Props) {
     // ── All hooks before any early returns ────────────────────────────────────
     const {keras, onnx, onnxQuantized, loading, errors, load} = useExplainability();
+    const {get, fetchFor} = useShapNarratives(version);
 
     useEffect(() => {
         void load(version);
@@ -37,7 +39,6 @@ export function ExplainabilityPanel({version}: Props) {
 
     // effectiveDate: user's choice when still valid in the loaded data,
     // otherwise falls back to firstDate automatically.
-    // This resets gracefully when a new model version loads with different dates.
     const effectiveDate =
         manualDate && availableDates.includes(manualDate) ? manualDate : firstDate;
 
@@ -57,8 +58,20 @@ export function ExplainabilityPanel({version}: Props) {
         ...(onnxQuantized && {onnx_quantized: onnxQuantized}),
     };
 
-    // ── Early returns (all hooks already called above) ────────────────────────
+    // visibleAndAvailable: toggled-on AND successfully loaded.
+    const visibleAndAvailable = ALL_VARIANTS.filter(
+        (v) => visible.has(v) && available.has(v)
+    );
 
+    const visibleKey = visibleAndAvailable.join(",");
+    useEffect(() => {
+        if (effectiveDate && visibleAndAvailable.length > 0) {
+            fetchFor(effectiveDate, visibleAndAvailable);
+        }
+        // visibleKey is a stable proxy for the visibleAndAvailable array identity
+    }, [effectiveDate, visibleKey, fetchFor]);
+
+    // ── Early returns (all hooks already called above) ────────────────────────
     if (loading) {
         return <LoadingSpinner text="Loading SHAP explanations..."/>;
     }
@@ -76,11 +89,6 @@ export function ExplainabilityPanel({version}: Props) {
     if (!effectiveDate || !anyArtifact) return null;
 
     // ── Component logic ───────────────────────────────────────────────────────
-
-    const visibleAndAvailable = ALL_VARIANTS.filter(
-        (v) => visible.has(v) && available.has(v)
-    );
-
     const failedVariants = ALL_VARIANTS.filter((v) => !available.has(v));
 
     const toggleVariant = (v: ShapVariant) => {
@@ -232,6 +240,22 @@ export function ExplainabilityPanel({version}: Props) {
                                 />
                             );
                         })}
+                    </div>
+                </div>
+            )}
+
+            {/* ── AI narrative (LLM) — one card per visible+available variant ───── */}
+            {visibleAndAvailable.length > 0 && (
+                <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-white">AI Narrative — {effectiveDate}</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {visibleAndAvailable.map((v) => (
+                            <NarrativeSummary
+                                key={v}
+                                variant={v}
+                                entry={get(v, effectiveDate)}
+                            />
+                        ))}
                     </div>
                 </div>
             )}
