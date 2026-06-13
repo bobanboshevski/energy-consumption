@@ -1,8 +1,8 @@
+# Production compose — uses pre-built images from Docker Hub.
+
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: bobanboshevski/energy-forecast-backend:latest
     container_name: energy-forecast-backend
     env_file:
       - ./backend/.env
@@ -13,13 +13,15 @@ services:
     environment:
       - TMPDIR=/tmp
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8002/health" ]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:8002 # this is ignored by nextjs
+    image: bobanboshevski/energy-forecast-frontend:latest
     container_name: energy-forecast-frontend
     ports:
       - "3000:3000"

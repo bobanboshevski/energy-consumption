@@ -55,10 +55,13 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
+          platforms: linux/amd64,linux/arm64
           push: true
           # I commented out build args since I wrote the default url in the Dockerfile
           #          build-args: |
           #            NEXT_PUBLIC_API_URL=http://localhost:8002
+          #          build-args: |
+          #            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8002' }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/energy-forecast-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/energy-forecast-frontend:${{ github.sha }}
