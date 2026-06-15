@@ -8,7 +8,7 @@ app = FastAPI(title="Energy Demand API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3002", "http://localhost:3000", "http://172.20.10.8:3000",
-                   'https://harsh-election-esteemed.ngrok-free.dev', 'energy.grega.xyz'],
+                   'https://harsh-election-esteemed.ngrok-free.dev', 'https://energy.grega.xyz'],
     # todo: i should add this in .env file
     # todo: all frontend domain in origins when deploying in production
     allow_credentials=True,
