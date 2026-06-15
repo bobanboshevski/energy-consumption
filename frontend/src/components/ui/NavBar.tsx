@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import {usePathname} from "next/navigation";
+import {motion} from "framer-motion";
 
 const LINKS = [
-    { href: "/", label: "Forecast" },
-    { href: "/admin", label: "Admin" },
+    {href: "/", label: "Forecast"},
+    {href: "/admin", label: "Admin"},
 ];
 
 export function NavBar() {
@@ -15,18 +15,28 @@ export function NavBar() {
         <header className="sticky top-0 z-50 bg-gray-950">
             <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
 
+                {/* ── Logo ─────────────────────────────────────────────────
+                    Glow is via box-shadow, NOT filter/blur.
+                    filter: blur() on any descendant of sticky breaks Safari. */}
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="relative">
-                        <div className="absolute inset-0 rounded-xl bg-blue-500/40 blur-md
-                                         opacity-0 scale-50
-                                         group-hover:opacity-100 group-hover:scale-125
-                                         transition-all duration-500 ease-out" />
-                        <div className="relative w-8 h-8 rounded-xl flex items-center justify-center
-                                        bg-gradient-to-br from-blue-500 to-blue-700
-                                        group-hover:from-blue-400 group-hover:to-blue-600
-                                        transition-colors duration-300">
-                            <span className="text-white text-sm">⚡</span>
-                        </div>
+                    <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center
+                                   bg-gradient-to-br from-blue-500 to-blue-700
+                                   group-hover:from-blue-400 group-hover:to-blue-600
+                                   transition-all duration-300"
+                        style={{
+                            boxShadow: "0 0 0 0 rgba(59,130,246,0)",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.boxShadow =
+                                "0 0 18px 4px rgba(59,130,246,0.35)";
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.boxShadow =
+                                "0 0 0 0 rgba(59,130,246,0)";
+                        }}
+                    >
+                        <span className="text-white text-sm">⚡</span>
                     </div>
                     <div className="flex flex-col leading-none gap-0.5">
                         <span className="font-semibold text-sm tracking-tight text-white
@@ -39,7 +49,7 @@ export function NavBar() {
                     </div>
                 </Link>
 
-                {/* ── Segmented control with glowing active pill ──────────── */}
+                {/* ── Segmented control ────────────────────────────────────── */}
                 <nav
                     className="flex items-center gap-0.5 rounded-xl p-1"
                     style={{
@@ -47,7 +57,7 @@ export function NavBar() {
                         boxShadow: "0 0 0 1px rgba(255,255,255,0.07)",
                     }}
                 >
-                    {LINKS.map(({ href, label }) => {
+                    {LINKS.map(({href, label}) => {
                         const isActive =
                             href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -64,25 +74,16 @@ export function NavBar() {
                                         style={{
                                             background:
                                                 "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(37,99,235,0.07))",
-                                        }}
-                                        animate={{
-                                            boxShadow: [
-                                                "inset 0 1px 0 rgba(147,197,253,0.16), 0 0 0 1px rgba(96,165,250,0.22), 0 4px 20px rgba(59,130,246,0.10)",
-                                                "inset 0 1px 0 rgba(147,197,253,0.22), 0 0 0 1px rgba(96,165,250,0.36), 0 4px 24px rgba(59,130,246,0.20)",
-                                                "inset 0 1px 0 rgba(147,197,253,0.16), 0 0 0 1px rgba(96,165,250,0.22), 0 4px 20px rgba(59,130,246,0.10)",
-                                            ],
+                                            boxShadow:
+                                                "inset 0 1px 0 rgba(147,197,253,0.16), 0 0 0 1px rgba(96,165,250,0.25), 0 4px 20px rgba(59,130,246,0.12)",
                                         }}
                                         transition={{
-                                            layout: { type: "spring", stiffness: 400, damping: 32 },
-                                            boxShadow: {
-                                                duration: 2.5,
-                                                repeat: Infinity,
-                                                ease: "easeInOut",
-                                            },
+                                            type: "spring",
+                                            stiffness: 400,
+                                            damping: 32,
                                         }}
                                     />
                                 )}
-
                                 <span className={`relative z-10 transition-colors duration-200 ${
                                     isActive ? "text-blue-200" : "text-gray-500 hover:text-gray-200"
                                 }`}>
@@ -94,8 +95,7 @@ export function NavBar() {
                 </nav>
 
             </div>
-
-            <div className="h-px bg-gradient-to-r from-transparent via-blue-900/100 to-transparent" />
+            <div className="h-px bg-gradient-to-r from-transparent via-blue-900/60 to-transparent"/>
         </header>
     );
 }
