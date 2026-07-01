@@ -1,425 +1,5 @@
 [
   {
-    "generated_at": "2026-05-13T22:22:41.389632",
-    "predictions": [
-      {
-        "date": "2026-05-14",
-        "predicted_demand": 1.4026,
-        "is_confirmed": false,
-        "temp_max": 14.1,
-        "temp_min": 5.1,
-        "daylight_duration": 53705.12,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-15",
-        "predicted_demand": 1.3291,
-        "is_confirmed": false,
-        "temp_max": 13.4,
-        "temp_min": 9.2,
-        "daylight_duration": 53849.73,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-16",
-        "predicted_demand": 1.152,
-        "is_confirmed": false,
-        "temp_max": 11.9,
-        "temp_min": 8.7,
-        "daylight_duration": 53991.58,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-17",
-        "predicted_demand": 1.0667,
-        "is_confirmed": false,
-        "temp_max": 17.9,
-        "temp_min": 6.8,
-        "daylight_duration": 54130.47,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-18",
-        "predicted_demand": 1.3006,
-        "is_confirmed": false,
-        "temp_max": 18.9,
-        "temp_min": 7.2,
-        "daylight_duration": 54266.22,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-19",
-        "predicted_demand": 1.3423,
-        "is_confirmed": false,
-        "temp_max": 20.7,
-        "temp_min": 6.6,
-        "daylight_duration": 54398.65,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-20",
-        "predicted_demand": 1.3558,
-        "is_confirmed": false,
-        "temp_max": 19.5,
-        "temp_min": 8.6,
-        "daylight_duration": 54527.56,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-21",
-        "predicted_demand": 1.3416,
-        "is_confirmed": false,
-        "temp_max": 21.0,
-        "temp_min": 9.8,
-        "daylight_duration": 54652.76,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-22",
-        "predicted_demand": 1.247,
-        "is_confirmed": false,
-        "temp_max": 22.5,
-        "temp_min": 10.2,
-        "daylight_duration": 54774.2,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-23",
-        "predicted_demand": 1.0679,
-        "is_confirmed": false,
-        "temp_max": 21.9,
-        "temp_min": 11.4,
-        "daylight_duration": 54892.86,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-24",
-        "predicted_demand": 1.008,
-        "is_confirmed": false,
-        "temp_max": 18.9,
-        "temp_min": 11.2,
-        "daylight_duration": 55008.87,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-25",
-        "predicted_demand": 1.1985,
-        "is_confirmed": false,
-        "temp_max": 21.1,
-        "temp_min": 9.9,
-        "daylight_duration": 55122.14,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-26",
-        "predicted_demand": 1.2822,
-        "is_confirmed": false,
-        "temp_max": 19.6,
-        "temp_min": 10.8,
-        "daylight_duration": 55232.5,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-27",
-        "predicted_demand": 1.3122,
-        "is_confirmed": false,
-        "temp_max": 21.8,
-        "temp_min": 11.1,
-        "daylight_duration": 55339.88,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-28",
-        "predicted_demand": 1.2903,
-        "is_confirmed": false,
-        "temp_max": 17.7,
-        "temp_min": 12.3,
-        "daylight_duration": 55444.11,
-        "demand_category": "medium"
-      }
-    ]
-  },
-  {
-    "generated_at": "2026-05-13T22:25:51.432021",
-    "predictions": [
-      {
-        "date": "2026-05-14",
-        "predicted_demand": 1.4026,
-        "is_confirmed": false,
-        "temp_max": 14.1,
-        "temp_min": 5.1,
-        "daylight_duration": 53705.12,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-15",
-        "predicted_demand": 1.3291,
-        "is_confirmed": false,
-        "temp_max": 13.4,
-        "temp_min": 9.2,
-        "daylight_duration": 53849.73,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-16",
-        "predicted_demand": 1.152,
-        "is_confirmed": false,
-        "temp_max": 11.9,
-        "temp_min": 8.7,
-        "daylight_duration": 53991.58,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-17",
-        "predicted_demand": 1.0667,
-        "is_confirmed": false,
-        "temp_max": 17.9,
-        "temp_min": 6.8,
-        "daylight_duration": 54130.47,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-18",
-        "predicted_demand": 1.3006,
-        "is_confirmed": false,
-        "temp_max": 18.9,
-        "temp_min": 7.2,
-        "daylight_duration": 54266.22,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-19",
-        "predicted_demand": 1.3423,
-        "is_confirmed": false,
-        "temp_max": 20.7,
-        "temp_min": 6.6,
-        "daylight_duration": 54398.65,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-20",
-        "predicted_demand": 1.3558,
-        "is_confirmed": false,
-        "temp_max": 19.5,
-        "temp_min": 8.6,
-        "daylight_duration": 54527.56,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-21",
-        "predicted_demand": 1.3416,
-        "is_confirmed": false,
-        "temp_max": 21.0,
-        "temp_min": 9.8,
-        "daylight_duration": 54652.76,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-22",
-        "predicted_demand": 1.247,
-        "is_confirmed": false,
-        "temp_max": 22.5,
-        "temp_min": 10.2,
-        "daylight_duration": 54774.2,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-23",
-        "predicted_demand": 1.0679,
-        "is_confirmed": false,
-        "temp_max": 21.9,
-        "temp_min": 11.4,
-        "daylight_duration": 54892.86,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-24",
-        "predicted_demand": 1.008,
-        "is_confirmed": false,
-        "temp_max": 18.9,
-        "temp_min": 11.2,
-        "daylight_duration": 55008.87,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-25",
-        "predicted_demand": 1.1985,
-        "is_confirmed": false,
-        "temp_max": 21.1,
-        "temp_min": 9.9,
-        "daylight_duration": 55122.14,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-26",
-        "predicted_demand": 1.2822,
-        "is_confirmed": false,
-        "temp_max": 19.6,
-        "temp_min": 10.8,
-        "daylight_duration": 55232.5,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-27",
-        "predicted_demand": 1.3122,
-        "is_confirmed": false,
-        "temp_max": 21.8,
-        "temp_min": 11.1,
-        "daylight_duration": 55339.88,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-28",
-        "predicted_demand": 1.2903,
-        "is_confirmed": false,
-        "temp_max": 17.7,
-        "temp_min": 12.3,
-        "daylight_duration": 55444.11,
-        "demand_category": "medium"
-      }
-    ]
-  },
-  {
-    "generated_at": "2026-05-13T22:26:01.477763",
-    "predictions": [
-      {
-        "date": "2026-05-14",
-        "predicted_demand": 1.4026,
-        "is_confirmed": false,
-        "temp_max": 14.1,
-        "temp_min": 5.1,
-        "daylight_duration": 53705.12,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-15",
-        "predicted_demand": 1.3291,
-        "is_confirmed": false,
-        "temp_max": 13.4,
-        "temp_min": 9.2,
-        "daylight_duration": 53849.73,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-16",
-        "predicted_demand": 1.152,
-        "is_confirmed": false,
-        "temp_max": 11.9,
-        "temp_min": 8.7,
-        "daylight_duration": 53991.58,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-17",
-        "predicted_demand": 1.0667,
-        "is_confirmed": false,
-        "temp_max": 17.9,
-        "temp_min": 6.8,
-        "daylight_duration": 54130.47,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-18",
-        "predicted_demand": 1.3006,
-        "is_confirmed": false,
-        "temp_max": 18.9,
-        "temp_min": 7.2,
-        "daylight_duration": 54266.22,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-19",
-        "predicted_demand": 1.3423,
-        "is_confirmed": false,
-        "temp_max": 20.7,
-        "temp_min": 6.6,
-        "daylight_duration": 54398.65,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-20",
-        "predicted_demand": 1.3558,
-        "is_confirmed": false,
-        "temp_max": 19.5,
-        "temp_min": 8.6,
-        "daylight_duration": 54527.56,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-21",
-        "predicted_demand": 1.3416,
-        "is_confirmed": false,
-        "temp_max": 21.0,
-        "temp_min": 9.8,
-        "daylight_duration": 54652.76,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-22",
-        "predicted_demand": 1.247,
-        "is_confirmed": false,
-        "temp_max": 22.5,
-        "temp_min": 10.2,
-        "daylight_duration": 54774.2,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-23",
-        "predicted_demand": 1.0679,
-        "is_confirmed": false,
-        "temp_max": 21.9,
-        "temp_min": 11.4,
-        "daylight_duration": 54892.86,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-24",
-        "predicted_demand": 1.008,
-        "is_confirmed": false,
-        "temp_max": 18.9,
-        "temp_min": 11.2,
-        "daylight_duration": 55008.87,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-25",
-        "predicted_demand": 1.1985,
-        "is_confirmed": false,
-        "temp_max": 21.1,
-        "temp_min": 9.9,
-        "daylight_duration": 55122.14,
-        "demand_category": "low"
-      },
-      {
-        "date": "2026-05-26",
-        "predicted_demand": 1.2822,
-        "is_confirmed": false,
-        "temp_max": 19.6,
-        "temp_min": 10.8,
-        "daylight_duration": 55232.5,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-27",
-        "predicted_demand": 1.3122,
-        "is_confirmed": false,
-        "temp_max": 21.8,
-        "temp_min": 11.1,
-        "daylight_duration": 55339.88,
-        "demand_category": "medium"
-      },
-      {
-        "date": "2026-05-28",
-        "predicted_demand": 1.2903,
-        "is_confirmed": false,
-        "temp_max": 17.7,
-        "temp_min": 12.3,
-        "daylight_duration": 55444.11,
-        "demand_category": "medium"
-      }
-    ]
-  },
-  {
     "generated_at": "2026-05-13T22:28:06.977985",
     "predictions": [
       {
@@ -12920,6 +12500,426 @@
   },
   {
     "generated_at": "2026-06-15T16:37:11.981936",
+    "predictions": [
+      {
+        "date": "2026-06-16",
+        "predicted_demand": 1.1931,
+        "is_confirmed": false,
+        "temp_max": 28.6,
+        "temp_min": 12.6,
+        "daylight_duration": 56669.39,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-17",
+        "predicted_demand": 1.2547,
+        "is_confirmed": false,
+        "temp_max": 30.8,
+        "temp_min": 13.7,
+        "daylight_duration": 56689.4,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-18",
+        "predicted_demand": 1.3232,
+        "is_confirmed": false,
+        "temp_max": 32.2,
+        "temp_min": 16.7,
+        "daylight_duration": 56704.92,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-19",
+        "predicted_demand": 1.3468,
+        "is_confirmed": false,
+        "temp_max": 32.1,
+        "temp_min": 17.3,
+        "daylight_duration": 56715.92,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-20",
+        "predicted_demand": 1.2324,
+        "is_confirmed": false,
+        "temp_max": 32.9,
+        "temp_min": 15.1,
+        "daylight_duration": 56722.41,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-21",
+        "predicted_demand": 1.0858,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 17.3,
+        "daylight_duration": 56724.38,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-22",
+        "predicted_demand": 1.2413,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 19.9,
+        "daylight_duration": 56721.86,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-23",
+        "predicted_demand": 1.3325,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 20.9,
+        "daylight_duration": 56714.82,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-24",
+        "predicted_demand": 1.3709,
+        "is_confirmed": false,
+        "temp_max": 32.9,
+        "temp_min": 21.2,
+        "daylight_duration": 56703.29,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-25",
+        "predicted_demand": 1.387,
+        "is_confirmed": false,
+        "temp_max": 26.2,
+        "temp_min": 20.7,
+        "daylight_duration": 56687.26,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-26",
+        "predicted_demand": 1.3655,
+        "is_confirmed": false,
+        "temp_max": 27.1,
+        "temp_min": 18.9,
+        "daylight_duration": 56666.76,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-27",
+        "predicted_demand": 1.2385,
+        "is_confirmed": false,
+        "temp_max": 28.6,
+        "temp_min": 16.6,
+        "daylight_duration": 56641.81,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-28",
+        "predicted_demand": 1.076,
+        "is_confirmed": false,
+        "temp_max": 28.9,
+        "temp_min": 18.9,
+        "daylight_duration": 56612.4,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-29",
+        "predicted_demand": 1.2198,
+        "is_confirmed": false,
+        "temp_max": 31.3,
+        "temp_min": 18.5,
+        "daylight_duration": 56578.57,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-30",
+        "predicted_demand": 1.3404,
+        "is_confirmed": false,
+        "temp_max": 31.3,
+        "temp_min": 18.5,
+        "daylight_duration": 56540.34,
+        "demand_category": "medium"
+      }
+    ]
+  },
+  {
+    "generated_at": "2026-06-15T16:38:32.489589",
+    "predictions": [
+      {
+        "date": "2026-06-16",
+        "predicted_demand": 1.1931,
+        "is_confirmed": false,
+        "temp_max": 28.6,
+        "temp_min": 12.6,
+        "daylight_duration": 56669.39,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-17",
+        "predicted_demand": 1.2547,
+        "is_confirmed": false,
+        "temp_max": 30.8,
+        "temp_min": 13.7,
+        "daylight_duration": 56689.4,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-18",
+        "predicted_demand": 1.3232,
+        "is_confirmed": false,
+        "temp_max": 32.2,
+        "temp_min": 16.7,
+        "daylight_duration": 56704.92,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-19",
+        "predicted_demand": 1.3468,
+        "is_confirmed": false,
+        "temp_max": 32.1,
+        "temp_min": 17.3,
+        "daylight_duration": 56715.92,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-20",
+        "predicted_demand": 1.2324,
+        "is_confirmed": false,
+        "temp_max": 32.9,
+        "temp_min": 15.1,
+        "daylight_duration": 56722.41,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-21",
+        "predicted_demand": 1.0858,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 17.3,
+        "daylight_duration": 56724.38,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-22",
+        "predicted_demand": 1.2413,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 19.9,
+        "daylight_duration": 56721.86,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-23",
+        "predicted_demand": 1.3325,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 20.9,
+        "daylight_duration": 56714.82,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-24",
+        "predicted_demand": 1.3709,
+        "is_confirmed": false,
+        "temp_max": 32.9,
+        "temp_min": 21.2,
+        "daylight_duration": 56703.29,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-25",
+        "predicted_demand": 1.387,
+        "is_confirmed": false,
+        "temp_max": 26.2,
+        "temp_min": 20.7,
+        "daylight_duration": 56687.26,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-26",
+        "predicted_demand": 1.3655,
+        "is_confirmed": false,
+        "temp_max": 27.1,
+        "temp_min": 18.9,
+        "daylight_duration": 56666.76,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-27",
+        "predicted_demand": 1.2385,
+        "is_confirmed": false,
+        "temp_max": 28.6,
+        "temp_min": 16.6,
+        "daylight_duration": 56641.81,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-28",
+        "predicted_demand": 1.076,
+        "is_confirmed": false,
+        "temp_max": 28.9,
+        "temp_min": 18.9,
+        "daylight_duration": 56612.4,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-29",
+        "predicted_demand": 1.2198,
+        "is_confirmed": false,
+        "temp_max": 31.3,
+        "temp_min": 18.5,
+        "daylight_duration": 56578.57,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-30",
+        "predicted_demand": 1.3404,
+        "is_confirmed": false,
+        "temp_max": 31.3,
+        "temp_min": 18.5,
+        "daylight_duration": 56540.34,
+        "demand_category": "medium"
+      }
+    ]
+  },
+  {
+    "generated_at": "2026-06-15T16:38:33.659108",
+    "predictions": [
+      {
+        "date": "2026-06-16",
+        "predicted_demand": 1.1931,
+        "is_confirmed": false,
+        "temp_max": 28.6,
+        "temp_min": 12.6,
+        "daylight_duration": 56669.39,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-17",
+        "predicted_demand": 1.2547,
+        "is_confirmed": false,
+        "temp_max": 30.8,
+        "temp_min": 13.7,
+        "daylight_duration": 56689.4,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-18",
+        "predicted_demand": 1.3232,
+        "is_confirmed": false,
+        "temp_max": 32.2,
+        "temp_min": 16.7,
+        "daylight_duration": 56704.92,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-19",
+        "predicted_demand": 1.3468,
+        "is_confirmed": false,
+        "temp_max": 32.1,
+        "temp_min": 17.3,
+        "daylight_duration": 56715.92,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-20",
+        "predicted_demand": 1.2324,
+        "is_confirmed": false,
+        "temp_max": 32.9,
+        "temp_min": 15.1,
+        "daylight_duration": 56722.41,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-21",
+        "predicted_demand": 1.0858,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 17.3,
+        "daylight_duration": 56724.38,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-22",
+        "predicted_demand": 1.2413,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 19.9,
+        "daylight_duration": 56721.86,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-23",
+        "predicted_demand": 1.3325,
+        "is_confirmed": false,
+        "temp_max": 31.9,
+        "temp_min": 20.9,
+        "daylight_duration": 56714.82,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-24",
+        "predicted_demand": 1.3709,
+        "is_confirmed": false,
+        "temp_max": 32.9,
+        "temp_min": 21.2,
+        "daylight_duration": 56703.29,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-25",
+        "predicted_demand": 1.387,
+        "is_confirmed": false,
+        "temp_max": 26.2,
+        "temp_min": 20.7,
+        "daylight_duration": 56687.26,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-26",
+        "predicted_demand": 1.3655,
+        "is_confirmed": false,
+        "temp_max": 27.1,
+        "temp_min": 18.9,
+        "daylight_duration": 56666.76,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-27",
+        "predicted_demand": 1.2385,
+        "is_confirmed": false,
+        "temp_max": 28.6,
+        "temp_min": 16.6,
+        "daylight_duration": 56641.81,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-28",
+        "predicted_demand": 1.076,
+        "is_confirmed": false,
+        "temp_max": 28.9,
+        "temp_min": 18.9,
+        "daylight_duration": 56612.4,
+        "demand_category": "low"
+      },
+      {
+        "date": "2026-06-29",
+        "predicted_demand": 1.2198,
+        "is_confirmed": false,
+        "temp_max": 31.3,
+        "temp_min": 18.5,
+        "daylight_duration": 56578.57,
+        "demand_category": "medium"
+      },
+      {
+        "date": "2026-06-30",
+        "predicted_demand": 1.3404,
+        "is_confirmed": false,
+        "temp_max": 31.3,
+        "temp_min": 18.5,
+        "daylight_duration": 56540.34,
+        "demand_category": "medium"
+      }
+    ]
+  },
+  {
+    "generated_at": "2026-06-15T16:42:45.660815",
     "predictions": [
       {
         "date": "2026-06-16",
