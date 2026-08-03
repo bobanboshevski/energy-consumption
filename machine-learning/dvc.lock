@@ -35,8 +35,8 @@ stages:
     outs:
     - path: data/raw/weather/history/weather_history.json
       hash: md5
-      md5: bf59a4220b5905b9f3b0ffbba9c96675
-      size: 200863
+      md5: 8497b892c55d1a08c36abf9d0da83d69
+      size: 200947
   fetch_weather_forecast:
     cmd: "uv run python -m src.data.fetch.fetch_weather_forecast_data\ngit commit
       -am \"Updated weather forecast data on `date` with DVC pipeline and GitHub workflows\"\
