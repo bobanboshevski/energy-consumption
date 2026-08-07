@@ -116,16 +116,16 @@ stages:
     deps:
     - path: data/preprocessed/final_dataset.csv
       hash: md5
-      md5: 14e246fddfefd45fc780eac224149298
-      size: 123454
+      md5: 13a5cdce196ee48dd949599da942c768
+      size: 123509
     - path: data/reference
       hash: md5
-      md5: b0063603e4686ee1a822206e9214345d.dir
-      size: 123118
+      md5: e7970172e26f0ecb7bef61899f372160.dir
+      size: 123173
       nfiles: 1
     - path: gx/uncommitted
       hash: md5
-      md5: 0aed5ecdd3bfa0d0e195e40042623efb.dir
+      md5: edfb4881cea3cec79988154b998fe871.dir
       size: 4217576
       nfiles: 26
     - path: src/models/preprocess.py
@@ -149,11 +149,11 @@ stages:
     outs:
     - path: models/model_energy_demand.keras
       hash: md5
-      md5: 968711d5350099a3623879b5c5e80d74
+      md5: cceba6ea6fcc78d38059c49e72f43c70
       size: 411696
     - path: models/pipeline_energy_demand.pkl
       hash: md5
-      md5: 657c2017d49fbd6faa4fe503c087f4f3
+      md5: 01738bb3abe1a4902e436256b41abc64
       size: 3435
   train_univariate:
     cmd: "uv run python src/models/train_univariate.py\ngit commit -am \"Updated model
