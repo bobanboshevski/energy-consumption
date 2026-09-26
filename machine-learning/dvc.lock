@@ -55,8 +55,8 @@ stages:
     outs:
     - path: data/raw/weather/forecast/weather_forecast.json
       hash: md5
-      md5: 9ffe7e50f718725c8f3df69a977ba622
-      size: 1893
+      md5: c592def512f4ea6beb08d2069db9cd53
+      size: 1892
   preprocess:
     cmd: "uv run python -m src.data.preprocess.merge_datasets\ngit commit -am \"Updated
       preprocessed data on `date` with DVC pipeline and GitHub workflow\" || true\n
