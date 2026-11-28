@@ -16,8 +16,8 @@ stages:
     outs:
     - path: data/raw/energy_demand/energy_demand.json
       hash: md5
-      md5: fec7b6526ca226312a030d36f0bddece
-      size: 281735
+      md5: 5f0acde8e7acc6918c68a3f8d3fc76d3
+      size: 281966
   fetch_weather_history:
     cmd: "uv run python -m src.data.fetch.fetch_weather_past_data\ngit commit -am
       \"Updated weather history data on `date` with DVC pipeline and GitHub workflows\"\
